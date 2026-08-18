@@ -3,6 +3,7 @@ import 'package:movil/models/producto_model.dart';
 import 'package:movil/services/producto_service.dart';
 import 'package:movil/widgets/tarjeta_producto.dart';
 import 'package:movil/widgets/estado_lista.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  BajoStockScreen — GET /api/inventario/bajo-stock SÍ existe
@@ -53,7 +54,7 @@ class _BajoStockScreenState extends State<BajoStockScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Productos con Stock Bajo'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: EstadoLista(

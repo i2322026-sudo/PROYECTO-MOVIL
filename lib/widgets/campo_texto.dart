@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  CampoTexto — campo de formulario reutilizable con el mismo
@@ -40,7 +41,7 @@ class CampoTexto extends StatelessWidget {
         hintText: hint,
         filled: true,
         fillColor:
-            soloLectura ? Colors.grey.shade200 : const Color(0xFFF5F6FA),
+            soloLectura ? Colors.grey.shade200 : AppColors.fondoClaro,
         prefixIcon: Icon(icono),
         suffixIcon: sufijo,
         border: OutlineInputBorder(

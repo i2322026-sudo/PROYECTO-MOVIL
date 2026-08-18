@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movil/models/producto_model.dart';
 import 'package:movil/services/producto_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  ProntoVencerScreen — GET /api/inventario/por-vencer SÍ existe
@@ -52,7 +53,7 @@ class _ProntoVencerScreenState extends State<ProntoVencerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Próximos a Vencer'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: Column(

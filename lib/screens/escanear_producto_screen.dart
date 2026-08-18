@@ -6,6 +6,7 @@ import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/widgets/tarjeta_producto.dart';
 import 'package:movil/screens/detalle_producto_screen.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  EscanearProductoScreen — usa la cámara real (mobile_scanner)
@@ -117,7 +118,7 @@ class _EscanearProductoScreenState extends State<EscanearProductoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Buscar Producto'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
         actions: [
           IconButton(

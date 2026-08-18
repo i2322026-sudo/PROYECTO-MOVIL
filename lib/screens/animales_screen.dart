@@ -4,6 +4,7 @@ import 'package:movil/services/animal_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  AnimalesScreen — mismo CRUD que la sección "Animales" del
@@ -94,7 +95,7 @@ class _AnimalesScreenState extends State<AnimalesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tipos de Animal'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: EstadoLista(
@@ -111,8 +112,8 @@ class _AnimalesScreenState extends State<AnimalesScreen> {
               final a = _animales[i];
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF1B9B5E).withOpacity(0.12),
-                  child: const Icon(Icons.pets, color: Color(0xFF1B9B5E)),
+                  backgroundColor: AppColors.verde.withOpacity(0.12),
+                  child: const Icon(Icons.pets, color: AppColors.verde),
                 ),
                 title: Text(a.nombre,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -132,7 +133,7 @@ class _AnimalesScreenState extends State<AnimalesScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         onPressed: () => _abrirFormulario(),
         child: const Icon(Icons.add, color: Colors.white),
       ),

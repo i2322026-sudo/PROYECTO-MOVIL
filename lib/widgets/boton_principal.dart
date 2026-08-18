@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  BotonPrincipal — botón verde de ancho completo con spinner
@@ -29,7 +30,7 @@ class BotonPrincipal extends StatelessWidget {
       child: ElevatedButton(
         onPressed: cargando ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1B9B5E),
+          backgroundColor: AppColors.verde,
           elevation: elevation,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

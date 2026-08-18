@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movil/models/producto_model.dart';
 import 'package:movil/services/producto_service.dart';
 import 'package:movil/screens/nuevo_producto_screen.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  DetalleProductoScreen — GET /api/productos/:id (existe de
@@ -52,7 +53,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_producto?.nombre ?? 'Producto'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
         actions: [
           if (_producto != null)
@@ -111,7 +112,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
                               'S/. ${_producto!.precioVenta.toStringAsFixed(2)}',
                               style: const TextStyle(
                                   fontSize: 18,
-                                  color: Color(0xFF1B9B5E),
+                                  color: AppColors.verde,
                                   fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 10),
@@ -198,7 +199,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
         child: Text(texto,
             style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF047a37),
+                color: AppColors.verdeOscuro,
                 fontSize: 14)),
       );
 

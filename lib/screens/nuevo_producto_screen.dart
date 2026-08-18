@@ -11,6 +11,7 @@ import 'package:movil/services/animal_service.dart';
 import 'package:movil/services/upload_service.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  NuevoProductoScreen — calcado del modal real de tu dashboard
@@ -339,9 +340,9 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
   Widget _chip(String valor, VoidCallback onEliminar, {required bool esColor}) {
     return Chip(
       label: Text(valor, style: const TextStyle(fontSize: 12)),
-      backgroundColor: esColor ? const Color(0xFFE8F5E9) : const Color(0xFFE3F2FD),
+      backgroundColor: esColor ? AppColors.verdeMuySuave : AppColors.azulMuySuave,
       labelStyle: TextStyle(
-          color: esColor ? const Color(0xFF2E7D32) : const Color(0xFF1565C0)),
+          color: esColor ? AppColors.verdeExito : AppColors.azulOscuro),
       deleteIcon: const Icon(Icons.close, size: 16),
       onDeleted: onEliminar,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -354,7 +355,7 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_esEdicion ? 'Editar Producto' : 'Nuevo Producto'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: _cargandoCatalogos
@@ -470,8 +471,8 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                         icon: const Icon(Icons.photo_camera_outlined, size: 18),
                         label: const Text('Cámara'),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF1B9B5E)),
-                          foregroundColor: const Color(0xFF1B9B5E),
+                          side: const BorderSide(color: AppColors.verde),
+                          foregroundColor: AppColors.verde,
                         ),
                       ),
                     ),
@@ -525,11 +526,11 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                   const SizedBox(height: 20),
                   const Divider(),
                   const Row(children: [
-                    Icon(Icons.medication_outlined, color: Color(0xFF1B9B5E)),
+                    Icon(Icons.medication_outlined, color: AppColors.verde),
                     SizedBox(width: 8),
                     Text('Datos del Medicamento',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Color(0xFF1B9B5E))),
+                            fontWeight: FontWeight.bold, color: AppColors.verde)),
                   ]),
                   const SizedBox(height: 14),
                   Row(children: [
@@ -573,11 +574,11 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                           label: const Text('Subir PDF'),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: !_fichaModoUrl
-                                ? const Color(0xFF1B9B5E).withOpacity(0.1)
+                                ? AppColors.verde.withOpacity(0.1)
                                 : null,
                             side: BorderSide(
                                 color: !_fichaModoUrl
-                                    ? const Color(0xFF1B9B5E)
+                                    ? AppColors.verde
                                     : Colors.grey.shade400),
                           ),
                         ),
@@ -590,11 +591,11 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                           label: const Text('URL'),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: _fichaModoUrl
-                                ? const Color(0xFF1B9B5E).withOpacity(0.1)
+                                ? AppColors.verde.withOpacity(0.1)
                                 : null,
                             side: BorderSide(
                                 color: _fichaModoUrl
-                                    ? const Color(0xFF1B9B5E)
+                                    ? AppColors.verde
                                     : Colors.grey.shade400),
                           ),
                         ),
@@ -631,11 +632,11 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                   const SizedBox(height: 20),
                   const Divider(),
                   const Row(children: [
-                    Icon(Icons.sell_outlined, color: Color(0xFF1B9B5E)),
+                    Icon(Icons.sell_outlined, color: AppColors.verde),
                     SizedBox(width: 8),
                     Text('Atributos del Accesorio',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Color(0xFF1B9B5E))),
+                            fontWeight: FontWeight.bold, color: AppColors.verde)),
                   ]),
                   const SizedBox(height: 14),
                   CampoTexto(
@@ -665,7 +666,7 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                     ),
                     IconButton(
                         onPressed: _agregarColor,
-                        icon: const Icon(Icons.add_circle, color: Color(0xFF1B9B5E))),
+                        icon: const Icon(Icons.add_circle, color: AppColors.verde)),
                   ]),
                   const SizedBox(height: 12),
                   const Text('Tallas disponibles',
@@ -690,7 +691,7 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                     ),
                     IconButton(
                         onPressed: _agregarTalla,
-                        icon: const Icon(Icons.add_circle, color: Color(0xFF1B9B5E))),
+                        icon: const Icon(Icons.add_circle, color: AppColors.verde)),
                   ]),
                   const SizedBox(height: 12),
                   CampoTexto(
@@ -703,11 +704,11 @@ class _NuevoProductoScreenState extends State<NuevoProductoScreen> {
                   const SizedBox(height: 20),
                   const Divider(),
                   const Row(children: [
-                    Icon(Icons.egg_outlined, color: Color(0xFF1B9B5E)),
+                    Icon(Icons.egg_outlined, color: AppColors.verde),
                     SizedBox(width: 8),
                     Text('Información del Alimento',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Color(0xFF1B9B5E))),
+                            fontWeight: FontWeight.bold, color: AppColors.verde)),
                   ]),
                   const SizedBox(height: 14),
                   Row(children: [

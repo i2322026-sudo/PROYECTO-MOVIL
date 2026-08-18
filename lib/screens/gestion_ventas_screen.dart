@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:movil/models/venta_model.dart';
 import 'package:movil/services/venta_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  GestionVentasScreen — calcada de "Gestión de Ventas" del panel
@@ -132,7 +133,7 @@ class _GestionVentasScreenState extends State<GestionVentasScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gestión de Ventas'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
         actions: [
           _exportando
@@ -208,7 +209,7 @@ class _GestionVentasScreenState extends State<GestionVentasScreen> {
                     icon: const Icon(Icons.filter_alt_outlined, size: 18),
                     label: const Text('Filtrar'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1B9B5E),
+                      backgroundColor: AppColors.verde,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -273,7 +274,7 @@ class _GestionVentasScreenState extends State<GestionVentasScreen> {
                               children: [
                                 Text('S/. ${v.total.toStringAsFixed(2)}',
                                     style: const TextStyle(
-                                        color: Color(0xFF1B9B5E),
+                                        color: AppColors.verde,
                                         fontWeight: FontWeight.bold)),
                                 Row(
                                   children: [

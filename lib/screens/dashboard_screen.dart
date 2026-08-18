@@ -21,6 +21,7 @@ import 'package:movil/screens/animales_screen.dart';
 import 'package:movil/screens/clientes_screen.dart';
 import 'package:movil/screens/colaboradores_screen.dart';
 import 'package:movil/screens/login_screen.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  DashboardScreen — pantalla principal tras el login.
@@ -113,10 +114,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5FAF6),
+      backgroundColor: AppColors.fondoVerdeSuave,
       appBar: AppBar(
         title: const Text('Panel Admin'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -176,7 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       titulo: 'Pedidos',
                       valor: '$_totalPedidos',
                       icono: Icons.receipt_long_outlined,
-                      color: const Color(0xFF1B9B5E),
+                      color: AppColors.verde,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -356,7 +357,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text('#${p.codigoPedido} — ${p.cliente ?? "Cliente"}',
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text('S/. ${p.total.toStringAsFixed(2)}',
-                      style: const TextStyle(color: Color(0xFF1B9B5E))),
+                      style: const TextStyle(color: AppColors.verde)),
                 ],
               ),
             ),
@@ -418,7 +419,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icono, color: const Color(0xFF1B9B5E)),
+            Icon(icono, color: AppColors.verde),
             const SizedBox(height: 6),
             Text(texto, textAlign: TextAlign.center),
           ],

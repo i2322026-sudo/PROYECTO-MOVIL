@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/producto_model.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  TarjetaProducto — calcada de la fila "Inventario de Productos"
@@ -53,9 +54,9 @@ class TarjetaProducto extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     backgroundColor:
-                        const Color(0xFF1B9B5E).withOpacity(0.12),
+                        AppColors.verde.withOpacity(0.12),
                     child: const Icon(Icons.inventory_2_outlined,
-                        color: Color(0xFF1B9B5E)),
+                        color: AppColors.verde),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -95,7 +96,7 @@ class TarjetaProducto extends StatelessWidget {
                             Text(
                               'S/. ${producto.precioVenta.toStringAsFixed(2)}',
                               style: const TextStyle(
-                                  color: Color(0xFF1B9B5E),
+                                  color: AppColors.verde,
                                   fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 10),

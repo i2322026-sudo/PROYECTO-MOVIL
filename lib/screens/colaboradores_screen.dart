@@ -3,6 +3,7 @@ import 'package:movil/models/colaborador_model.dart';
 import 'package:movil/services/colaborador_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/screens/nuevo_colaborador_screen.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  ColaboradoresScreen — GET /api/colaboradores (lista real,
@@ -132,7 +133,7 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Colaboradores'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: EstadoLista(
@@ -158,9 +159,9 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
                   if (editado == true) _cargar();
                 },
                 leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF1B9B5E).withOpacity(0.12),
+                  backgroundColor: AppColors.verde.withOpacity(0.12),
                   child: const Icon(Icons.badge_outlined,
-                      color: Color(0xFF1B9B5E)),
+                      color: AppColors.verde),
                 ),
                 title: Text(c.nombreCompleto,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -251,7 +252,7 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         onPressed: () async {
           final creado = await Navigator.push<bool>(
             context,

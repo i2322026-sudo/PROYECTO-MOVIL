@@ -4,6 +4,7 @@ import 'package:movil/services/colaborador_service.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/screens/confirmar_otp_colaborador_screen.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  NuevoColaboradorScreen — crear (POST) o editar (PUT) un
@@ -178,7 +179,7 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_esEdicion ? 'Editar Colaborador' : 'Nuevo Colaborador'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: _cargandoCargos

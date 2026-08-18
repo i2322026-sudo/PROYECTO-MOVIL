@@ -4,6 +4,7 @@ import 'package:movil/models/pedido_model.dart';
 import 'package:movil/services/dashboard_service.dart';
 import 'package:movil/services/pedido_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  GraficoVentasScreen — calcada del panel "Reportes" de la web:
@@ -37,11 +38,11 @@ class _GraficoVentasScreenState extends State<GraficoVentasScreen> {
   List<Pedido> _pedidos = [];
 
   static const _coloresDona = [
-    Color(0xFF06A049),
-    Color(0xFF2FBE73),
-    Color(0xFF3B82C4),
-    Color(0xFFF5C242),
-    Color(0xFFEF7B45),
+    AppColors.verde,
+    AppColors.verdeClaro,
+    AppColors.azul,
+    AppColors.dorado,
+    AppColors.naranja,
   ];
 
   static const _coloresEstado = {
@@ -117,7 +118,7 @@ class _GraficoVentasScreenState extends State<GraficoVentasScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ventas'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: EstadoLista(
@@ -209,12 +210,12 @@ class _GraficoVentasScreenState extends State<GraficoVentasScreen> {
         children: [
           Row(
             children: [
-              Icon(icono, color: const Color(0xFF06A049), size: 18),
+              Icon(icono, color: AppColors.verde, size: 18),
               const SizedBox(width: 8),
               Text(titulo,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF047a37),
+                      color: AppColors.verdeOscuro,
                       fontSize: 14)),
             ],
           ),
@@ -296,12 +297,12 @@ class _GraficoVentasScreenState extends State<GraficoVentasScreen> {
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              color: const Color(0xFF06A049),
+              color: AppColors.verde,
               barWidth: 3,
               dotData: const FlDotData(show: true),
               belowBarData: BarAreaData(
                 show: true,
-                color: const Color(0xFF06A049).withOpacity(0.12),
+                color: AppColors.verde.withOpacity(0.12),
               ),
             ),
           ],

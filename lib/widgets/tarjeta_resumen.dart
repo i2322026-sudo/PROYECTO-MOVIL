@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  TarjetaResumen — tarjeta pequeña para mostrar una métrica
@@ -17,7 +18,7 @@ class TarjetaResumen extends StatelessWidget {
     required this.titulo,
     required this.valor,
     required this.icono,
-    this.color = const Color(0xFF1B9B5E),
+    this.color = AppColors.verde,
     this.onTap,
   });
 

@@ -7,6 +7,7 @@ import 'package:movil/services/cliente_service.dart';
 import 'package:movil/models/cliente_model.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  PromocionesScreen — calcada de public/promociones.html:
@@ -226,7 +227,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Promociones'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: ListView(
@@ -256,7 +257,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> {
                   return CheckboxListTile(
                     value: marcado,
                     dense: true,
-                    activeColor: const Color(0xFF1B9B5E),
+                    activeColor: AppColors.verde,
                     onChanged: correo.isEmpty
                         ? null
                         : (v) => setState(() {
@@ -303,7 +304,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> {
                     return CheckboxListTile(
                       value: marcado,
                       dense: true,
-                      activeColor: const Color(0xFF1B9B5E),
+                      activeColor: AppColors.verde,
                       onChanged: correo.isEmpty
                           ? null
                           : (v) => setState(() {
@@ -355,7 +356,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> {
             decoration: InputDecoration(
               hintText: 'Escribe el contenido de la promoción...',
               filled: true,
-              fillColor: const Color(0xFFF5F6FA),
+              fillColor: AppColors.fondoClaro,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -384,7 +385,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> {
             const SizedBox(height: 16),
             LinearProgressIndicator(
               value: _progresoEnviados / _progresoTotal,
-              color: const Color(0xFF1B9B5E),
+              color: AppColors.verde,
             ),
             const SizedBox(height: 4),
             Text('Enviando $_progresoEnviados de $_progresoTotal...',
@@ -410,7 +411,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(_exito!,
-                  style: const TextStyle(color: Color(0xFF1B9B5E))),
+                  style: const TextStyle(color: AppColors.verde)),
             ),
           ],
           const SizedBox(height: 20),

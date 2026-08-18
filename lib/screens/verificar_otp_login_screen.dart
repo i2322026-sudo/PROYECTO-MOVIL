@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movil/services/usuario_service.dart';
 import 'package:movil/screens/dashboard_screen.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  VerificarOtpLoginScreen — paso 2 del login, EN CADA INGRESO
@@ -70,7 +71,7 @@ class _VerificarOtpLoginScreenState extends State<VerificarOtpLoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Verificación de ingreso'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -78,7 +79,7 @@ class _VerificarOtpLoginScreenState extends State<VerificarOtpLoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.shield_outlined, size: 48, color: Color(0xFF1B9B5E)),
+            const Icon(Icons.shield_outlined, size: 48, color: AppColors.verde),
             const SizedBox(height: 16),
             Text(
               'Por seguridad, mandamos un código de 6 dígitos a ${widget.correo}. '
@@ -96,7 +97,7 @@ class _VerificarOtpLoginScreenState extends State<VerificarOtpLoginScreen> {
                 counterText: '',
                 hintText: '00000',
                 filled: true,
-                fillColor: const Color(0xFFF5F6FA),
+                fillColor: AppColors.fondoClaro,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,

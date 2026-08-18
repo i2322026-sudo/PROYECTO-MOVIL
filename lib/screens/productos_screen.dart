@@ -9,6 +9,7 @@ import '../services/reporte_service.dart';
 import '../widgets/tarjeta_producto.dart';
 import '../widgets/estado_lista.dart';
 import 'nuevo_producto_screen.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  ProductosScreen — lista el inventario real conectado a
@@ -299,7 +300,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
           children: [
             Text(titulo,
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold, color: Color(0xFF1B9B5E))),
+                    fontWeight: FontWeight.bold, color: AppColors.verde)),
             Text(valor),
           ],
         ),
@@ -320,7 +321,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inventario de Productos'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
         actions: [
           _exportando
@@ -440,7 +441,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       label: Text(texto),
       selected: seleccionado,
       onSelected: (_) => setState(() => _filtro = valor),
-      selectedColor: const Color(0xFF1B9B5E),
+      selectedColor: AppColors.verde,
       // Más compacto que el default: "Activos" + "Inactivos" +
       // "Stock bajo" ocupan más texto que los rangos de Pedidos
       // (Hoy/Semana/Mes), así que sin achicar el padding no

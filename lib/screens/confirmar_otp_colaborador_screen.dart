@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movil/services/colaborador_service.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  ConfirmarOtpColaboradorScreen — paso 2 de "Nuevo Colaborador".
@@ -66,7 +67,7 @@ class _ConfirmarOtpColaboradorScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Verificar correo'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -75,7 +76,7 @@ class _ConfirmarOtpColaboradorScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Icon(Icons.mark_email_read_outlined,
-                size: 48, color: Color(0xFF1B9B5E)),
+                size: 48, color: AppColors.verde),
             const SizedBox(height: 16),
             Text(
               'Mandamos un código de 6 dígitos a ${widget.correo}. '
@@ -94,7 +95,7 @@ class _ConfirmarOtpColaboradorScreenState
                 counterText: '',
                 hintText: '00000',
                 filled: true,
-                fillColor: const Color(0xFFF5F6FA),
+                fillColor: AppColors.fondoClaro,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,

@@ -6,6 +6,7 @@ import 'package:movil/models/pedido_model.dart';
 import 'package:movil/services/pedido_service.dart';
 import 'package:movil/services/reporte_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  GestionPedidoScreen — lista de pedidos (GET /api/pedidos) con
@@ -209,7 +210,7 @@ class _GestionPedidoScreenState extends State<GestionPedidoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gestión de Pedidos'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
         actions: [
           _exportando
@@ -318,7 +319,7 @@ class _GestionPedidoScreenState extends State<GestionPedidoScreen> {
                             Text(
                               'S/. ${p.total.toStringAsFixed(2)}',
                               style: const TextStyle(
-                                  color: Color(0xFF1B9B5E),
+                                  color: AppColors.verde,
                                   fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 10),
@@ -358,7 +359,7 @@ class _GestionPedidoScreenState extends State<GestionPedidoScreen> {
       label: Text(texto),
       selected: seleccionado,
       onSelected: (_) => setState(() => _rango = valor),
-      selectedColor: const Color(0xFF1B9B5E),
+      selectedColor: AppColors.verde,
       labelStyle: TextStyle(
         color: seleccionado ? Colors.white : Colors.black87,
         fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,

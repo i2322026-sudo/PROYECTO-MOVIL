@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movil/models/cliente_model.dart';
 import 'package:movil/services/cliente_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  ClientesScreen — mismas columnas que "Clientes Registrados"
@@ -141,7 +142,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Clientes Registrados'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -188,13 +189,13 @@ class _ClientesScreenState extends State<ClientesScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor:
-                              const Color(0xFF1B9B5E).withOpacity(0.12),
+                              AppColors.verde.withOpacity(0.12),
                           child: Text(
                             c.nombres.isNotEmpty
                                 ? c.nombres[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(
-                                color: Color(0xFF1B9B5E),
+                                color: AppColors.verde,
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -250,7 +251,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
       label: Text(texto),
       selected: seleccionado,
       onSelected: (_) => setState(() => _rango = valor),
-      selectedColor: const Color(0xFF1B9B5E),
+      selectedColor: AppColors.verde,
       labelStyle: TextStyle(
         color: seleccionado ? Colors.white : Colors.black87,
         fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,

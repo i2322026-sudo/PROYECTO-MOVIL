@@ -4,6 +4,7 @@ import 'package:movil/services/categoria_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  CategoriasScreen — mismo CRUD que la sección "Categorías"
@@ -95,7 +96,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Categorías'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: EstadoLista(
@@ -112,9 +113,9 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
               final c = _categorias[i];
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF1B9B5E).withOpacity(0.12),
+                  backgroundColor: AppColors.verde.withOpacity(0.12),
                   child: const Icon(Icons.category_outlined,
-                      color: Color(0xFF1B9B5E)),
+                      color: AppColors.verde),
                 ),
                 title: Text(c.nombre,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -135,7 +136,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         onPressed: () => _abrirFormulario(),
         child: const Icon(Icons.add, color: Colors.white),
       ),

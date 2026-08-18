@@ -5,6 +5,7 @@ import 'package:movil/screens/dashboard_screen.dart';
 import 'package:movil/screens/verificar_otp_login_screen.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -80,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5FAF6),
+      backgroundColor: AppColors.fondoVerdeSuave,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -88,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
           'ALEVET',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1B9B5E),
+            color: AppColors.verde,
           ),
         ),
         centerTitle: true,

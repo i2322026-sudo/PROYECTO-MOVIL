@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:movil/screens/login_screen.dart';
 import 'package:movil/core/app_navigator.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  main.dart — único punto de entrada de la app.
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
       ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1B9B5E),
+          seedColor: AppColors.verde,
         ),
         useMaterial3: true,
       ),

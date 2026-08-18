@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movil/services/usuario_service.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
+import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  MiPerfilScreen — GET /api/auth/perfil, PUT
@@ -198,7 +199,7 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mi Perfil'),
-        backgroundColor: const Color(0xFF1B9B5E),
+        backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
       ),
       body: _cargando
