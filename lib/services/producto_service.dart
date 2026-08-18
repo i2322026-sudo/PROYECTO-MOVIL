@@ -1,111 +1,155 @@
 import 'package:dio/dio.dart';
 import '../models/producto_model.dart';
-import 'dio_client.dart';
 import 'api_config.dart';
+import 'base_service.dart';
 
-class ProductoService {
-  final Dio _dio = DioClient.dio;
-
-  Future<List<Producto>> getProductos() async {
+// ─────────────────────────────────────────────────────────────
+//  ProductoService — verificado contra producto.controller.js
+//  y producto.routes.js reales:
+//   - GET /productos y GET /productos/:id son PÚBLICAS
+//   - POST, PUT, DELETE y PUT /:id/estado requieren estar
+//     logueado como COLABORADOR (dio ya manda el token solo)
+//   - DELETE ahora es borrado FÍSICO permanente; falla con 409
+//     si el producto tiene pedidos asociados (mensaje real del
+//     servidor, no hay que adivinarlo)
+// ─────────────────────────────────────────────────────────────
+class ProductoService extends BaseService {
+  Future<List<Producto>> getProductos({
+    String? nombre,
+    int? categoria,
+    double? precioMin,
+    double? precioMax,
+    int? idTipoAnimal,
+  }) async {
     try {
-      final res = await _dio.get(ApiConfig.productos);
+      final res = await dio.get(ApiConfig.productos, queryParameters: {
+        if (nombre != null) 'nombre': nombre,
+        if (categoria != null) 'categoria': categoria,
+        if (precioMin != null) 'precio_min': precioMin,
+        if (precioMax != null) 'precio_max': precioMax,
+        if (idTipoAnimal != null) 'id_tipo_animal': idTipoAnimal,
+        // Esta app es solo para el panel admin: sin este parámetro
+        // el backend oculta los productos INACTIVO — por eso al
+        // desactivar uno "desaparecía" en vez de quedar visible
+        // con el badge "Inactivo", igual que en el dashboard web.
+        'incluirInactivos': true,
+        // Sin 'pagina' el backend igual pagina con LIMIT 20 por
+        // defecto — subimos el límite para traer todo el inventario.
+        'limite': 200,
+      });
       return (res.data as List)
           .map((e) => Producto.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(_error(e));
+      throw errorDe(e);
     }
   }
 
-  // GET /api/inventario/bajo-stock
-  Future<List<Producto>> getBajoStock({String? idTipoAnimal}) async {
+  Future<Producto> getProductoPorId(int id) async {
     try {
-      final res = await _dio.get(
-        ApiConfig.bajoStock,
-        queryParameters: idTipoAnimal != null
-            ? {'id_tipo_animal': idTipoAnimal}
-            : null,
-      );
+      final res = await dio.get('${ApiConfig.productos}/$id');
+      return Producto.fromJson(res.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw errorDe(e);
+    }
+  }
+
+  Future<void> crearProducto(Producto producto) async {
+    try {
+      await dio.post(ApiConfig.productos, data: producto.toJson());
+    } on DioException catch (e) {
+      throw errorDe(e);
+    }
+  }
+
+  Future<void> actualizarProducto(int id, Producto producto) async {
+    try {
+      await dio.put('${ApiConfig.productos}/$id', data: producto.toJson());
+    } on DioException catch (e) {
+      throw errorDe(e);
+    }
+  }
+
+  /// Borrado FÍSICO permanente. El backend responde 409 con un
+  /// mensaje claro si el producto tiene pedidos asociados — ese
+  /// mensaje llega tal cual gracias a BaseService.errorDe().
+  Future<void> eliminarProducto(int id) async {
+    try {
+      await dio.delete('${ApiConfig.productos}/$id');
+    } on DioException catch (e) {
+      throw errorDe(e);
+    }
+  }
+
+  /// Activar/Desactivar — endpoint dedicado real
+  /// (PUT /api/productos/:id/estado), más simple y seguro que
+  /// mandar todo el producto de nuevo solo para cambiar el estado.
+  Future<void> cambiarEstado(int id, String estado) async {
+    try {
+      await dio.put(ApiConfig.cambiarEstadoProducto(id),
+          data: {'estado': estado});
+    } on DioException catch (e) {
+      throw errorDe(e);
+    }
+  }
+
+  Future<void> desactivarProducto(int id) => cambiarEstado(id, 'INACTIVO');
+  Future<void> activarProducto(int id) => cambiarEstado(id, 'ACTIVO');
+
+  // ── INVENTARIO — endpoints reales dedicados ─────────────────
+
+  /// GET /api/inventario/bajo-stock — ya filtrado en el servidor.
+  Future<List<Producto>> getBajoStock({int? idTipoAnimal}) async {
+    try {
+      final res = await dio.get(ApiConfig.bajoStock, queryParameters: {
+        if (idTipoAnimal != null) 'id_tipo_animal': idTipoAnimal,
+      });
       return (res.data as List)
           .map((e) => Producto.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(_error(e));
+      throw errorDe(e);
     }
   }
 
-  // GET /api/inventario/por-vencer
+  /// GET /api/inventario/por-vencer — incluye dias_restantes ya
+  /// calculado por el servidor (DATEDIFF en SQL).
   Future<List<Producto>> getProximosVencer({int dias = 30}) async {
     try {
-      final res = await _dio.get(
-        ApiConfig.porVencer,
-        queryParameters: {'dias': dias},
-      );
+      final res = await dio.get(ApiConfig.porVencer, queryParameters: {
+        'dias': dias,
+      });
       return (res.data as List)
           .map((e) => Producto.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(_error(e));
+      throw errorDe(e);
     }
   }
 
-  // GET /api/inventario/buscar-codigo/:codigo
+  /// GET /api/inventario/buscar-codigo/:codigo
   Future<Producto?> buscarPorCodigo(String codigo) async {
     try {
-      final res = await _dio.get('${ApiConfig.buscarCodigo}/$codigo');
+      final res = await dio.get(ApiConfig.buscarPorCodigo(codigo));
       return Producto.fromJson(res.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;
-      throw Exception(_error(e));
+      throw errorDe(e);
     }
   }
 
-  // PUT /api/inventario/actualizar-stock/:id
+  /// PUT /api/inventario/actualizar-stock/:id — suma `cantidad`
+  /// al stock actual (no lo reemplaza) y opcionalmente actualiza
+  /// la fecha de vencimiento del nuevo lote.
   Future<void> actualizarStock(
       int idProducto, int cantidad, String? fechaVencimiento) async {
     try {
-      await _dio.put(
-        '${ApiConfig.actualizarStock}/$idProducto',
-        data: {
-          'cantidad': cantidad,
-          if (fechaVencimiento != null)
-            'fecha_vencimiento': fechaVencimiento,
-        },
-      );
+      await dio.put(ApiConfig.actualizarStock(idProducto), data: {
+        'cantidad': cantidad,
+        if (fechaVencimiento != null) 'fecha_vencimiento': fechaVencimiento,
+      });
     } on DioException catch (e) {
-      throw Exception(_error(e));
+      throw errorDe(e);
     }
-  }
-
-  // POST /api/productos
-  Future<void> crearProducto(Map<String, dynamic> data) async {
-    try {
-      await _dio.post(ApiConfig.productos, data: data);
-    } on DioException catch (e) {
-      throw Exception(_error(e));
-    }
-  }
-
-  // PUT /api/productos/:id
-  Future<void> actualizarProducto(
-      int id, Map<String, dynamic> data) async {
-    try {
-      await _dio.put('${ApiConfig.productos}/$id', data: data);
-    } on DioException catch (e) {
-      throw Exception(_error(e));
-    }
-  }
-
-  String _error(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return 'Tiempo de espera agotado.';
-    }
-    if (e.type == DioExceptionType.connectionError) {
-      return 'Sin conexión. Verifica la IP en api_config.dart';
-    }
-    final msg = e.response?.data?['mensaje'];
-    return msg as String? ??
-        'Error ${e.response?.statusCode ?? "desconocido"}';
   }
 }

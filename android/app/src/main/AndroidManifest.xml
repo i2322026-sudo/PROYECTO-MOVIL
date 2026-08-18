@@ -3,8 +3,21 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <!-- Android 12 (API 32) y anteriores: acceso clásico a archivos.
+         maxSdkVersion evita pedir un permiso que en Android 13+ el
+         sistema ignora igual, y que Play Store puede marcar como
+         innecesario si se declara sin límite. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+
+    <!-- Android 13+ (API 33+): permiso granular para fotos/imágenes,
+         necesario para que image_picker pueda abrir la galería
+         ("Subir desde equipo"). Sin esto, en celulares nuevos ese
+         botón puede no dejar elegir ninguna imagen. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
     <application
         android:label="ALEVET"
@@ -39,6 +52,13 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Necesario para url_launcher: en Android 11+ (API 30+) hay
+             que declarar explícitamente qué tipo de intents puede
+             resolver la app, o launchUrl() falla sin abrir nada. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
         </intent>
     </queries>
 

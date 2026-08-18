@@ -1,5 +1,11 @@
 // ─────────────────────────────────────────────────────────────
-//  Producto — modelo que mapea la respuesta JSON del backend
+//  Producto — verificado contra el backend REAL
+//  (ALIVETagroveterinaria, src/models/producto.model.js) y la
+//  tabla `producto` real de alivetagroveterinaria_empresa.
+//
+//  SÍ existen: marca, ficha_tecnica, colores, composicion,
+//  modo_uso, peso_presentacion, tallas — se habían quitado por
+//  error antes, con el proyecto SISTEMA-WEB viejo. Ya restaurados.
 // ─────────────────────────────────────────────────────────────
 class Producto {
   final int idProducto;
@@ -12,12 +18,29 @@ class Producto {
   final int? idTipoAnimal;
   final int stockActual;
   final int stockMinimo;
-  final int? stockAlerta;
   final String? fechaVencimiento;
-  final String estado;
+  final String estado; // 'ACTIVO' | 'INACTIVO'
+
+  // Campos de ficha técnica — sí existen en la tabla real
+  final String? marca;
+  final String? pesoPresentacion;
+  final String? colores;
+  final String? tallas;
+  final String? fichaTecnica;
+  final String? composicion;
+  final String? modoUso;
+
+  // Datos que llegan por JOIN, solo para mostrar
   final String? categoria;
   final String? tipoAnimal;
-  final int? diasRestantes; // ← NUEVO: viene del backend
+
+  // Presente en respuestas de /api/inventario/por-vencer
+  final int? diasRestantes;
+
+  // Fecha en que se creó el producto — sí existe en la tabla real
+  // (columna fecha_creacion), se usa para el filtro Hoy/Semana/
+  // Quincena/Mes en la pantalla de Inventario.
+  final String? fechaCreacion;
 
   Producto({
     required this.idProducto,
@@ -30,26 +53,22 @@ class Producto {
     this.idTipoAnimal,
     required this.stockActual,
     required this.stockMinimo,
-    this.stockAlerta,
     this.fechaVencimiento,
     required this.estado,
+    this.marca,
+    this.pesoPresentacion,
+    this.colores,
+    this.tallas,
+    this.fichaTecnica,
+    this.composicion,
+    this.modoUso,
     this.categoria,
     this.tipoAnimal,
     this.diasRestantes,
+    this.fechaCreacion,
   });
 
-  // Usa diasRestantes del backend, si no lo calcula localmente
-  int? get diasParaVencer {
-    if (diasRestantes != null) return diasRestantes;
-    if (fechaVencimiento == null) return null;
-    // Soporta "2026-12-31" y "2026-12-31T00:00:00.000Z"
-    final limpio = fechaVencimiento!.split('T').first.trim();
-    final fecha = DateTime.tryParse(limpio);
-    if (fecha == null) return null;
-    final hoy =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    return fecha.difference(hoy).inDays;
-  }
+  bool get stockBajo => stockActual <= stockMinimo;
 
   factory Producto.fromJson(Map<String, dynamic> json) {
     return Producto(
@@ -63,27 +82,43 @@ class Producto {
       idTipoAnimal: json['id_tipo_animal'] as int?,
       stockActual: (json['stock_actual'] as int?) ?? 0,
       stockMinimo: (json['stock_minimo'] as int?) ?? 0,
-      stockAlerta: json['stock_alerta'] as int?,
       fechaVencimiento: json['fecha_vencimiento'] as String?,
       estado: (json['estado'] as String?) ?? 'ACTIVO',
+      marca: json['marca'] as String?,
+      pesoPresentacion: json['peso_presentacion'] as String?,
+      colores: json['colores'] as String?,
+      tallas: json['tallas'] as String?,
+      fichaTecnica: json['ficha_tecnica'] as String?,
+      composicion: json['composicion'] as String?,
+      modoUso: json['modo_uso'] as String?,
       categoria: json['categoria'] as String?,
       tipoAnimal: json['tipo_animal'] as String?,
       diasRestantes: json['dias_restantes'] != null
           ? int.tryParse(json['dias_restantes'].toString())
           : null,
+      fechaCreacion: json['fecha_creacion'] as String?,
     );
   }
 
+  /// Para crear/actualizar (POST/PUT /api/productos) — coincide
+  /// exactamente con los campos que lee producto.model.js.
   Map<String, dynamic> toJson() => {
         'nombre': nombre,
         'descripcion': descripcion,
+        'imagen': imagen,
         'precio_venta': precioVenta,
         'codigo_barra': codigoBarra,
-        'stock_actual': stockActual,
-        'stock_minimo': stockMinimo,
-        'stock_alerta': stockAlerta,
         'id_categoria': idCategoria,
         'id_tipo_animal': idTipoAnimal,
-        'fecha_vencimiento': fechaVencimiento,    
+        'stock_actual': stockActual,
+        'stock_minimo': stockMinimo,
+        'fecha_vencimiento': fechaVencimiento,
+        'marca': marca,
+        'peso_presentacion': pesoPresentacion,
+        'colores': colores,
+        'tallas': tallas,
+        'ficha_tecnica': fichaTecnica,
+        'composicion': composicion,
+        'modo_uso': modoUso,
       };
 }

@@ -1,57 +1,73 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'api_config.dart';
+import 'package:movil/core/app_navigator.dart';
+import 'package:movil/screens/login_screen.dart';
 
-// ─────────────────────────────────────────────────────────────
-//  DioClient — instancia única de Dio para toda la app.
-//
-//  Hace dos cosas automáticamente en CADA petición:
-//    1. Agrega el token JWT en el header Authorization
-//    2. Imprime errores claros en consola para depurar
-// ─────────────────────────────────────────────────────────────
 class DioClient {
   static Dio? _instancia;
+  static bool _redirigiendoAlLogin = false;
 
-  // Accede siempre con: DioClient.dio
   static Dio get dio {
-    _instancia ??= _construir();
+    _instancia ??= _crear();
     return _instancia!;
   }
 
-  static Dio _construir() {
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: ApiConfig.base,
-        connectTimeout: const Duration(seconds: 60),
-        receiveTimeout: const Duration(seconds: 60),
-        headers: {'Content-Type': 'application/json'},
-      ),
-    );
+  static Dio _crear() {
+    final dio = Dio(BaseOptions(
+      baseUrl: 'https://alivetagroveterinaria-web.onrender.com/api',
+      // El plan Free de Render "duerme" la instancia tras un rato de
+      // inactividad, y el primer request tras eso puede tardar 50s+
+      // solo en levantar el servidor (antes de que llegue a responder
+      // nada). 20s se cortaba ANTES de que el server llegara a
+      // contestar. Con 60s le damos margen real a ese arranque en frío.
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
+      headers: {'Content-Type': 'application/json'},
+    ));
 
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        // Antes de cada request: inyecta el token si existe
-        onRequest: (options, handler) async {
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('token');
+        if (token != null && token.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        handler.next(options);
+      },
+      // El token dura 30 minutos (igual que en la web). Sin esto, la
+      // pantalla se queda mostrando el error de "Sesión expirada"
+      // con un botón "Reintentar" que va a volver a fallar siempre
+      // — acá se detecta el 401, se borra la sesión vieja, y se
+      // manda directo al login con un aviso claro.
+      onError: (error, handler) async {
+        if (error.response?.statusCode == 401 && !_redirigiendoAlLogin) {
+          _redirigiendoAlLogin = true;
           final prefs = await SharedPreferences.getInstance();
-          final token = prefs.getString('token') ?? '';
-          if (token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          handler.next(options);
-        },
+          await prefs.clear();
 
-        // En cada error: imprime info útil para depurar
-        onError: (DioException e, handler) {
-          final status = e.response?.statusCode ?? 'sin respuesta';
-          final path = e.requestOptions.path;
-          debugPrint('❌ DioError [$status] → $path');
-          debugPrint('   Tipo:    ${e.type}');
-          debugPrint('   Mensaje: ${e.message}');
-          handler.next(e);
-        },
-      ),
-    );
+          final nav = navigatorKey.currentState;
+          if (nav != null) {
+            nav.pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+              (route) => false,
+            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final ctx = navigatorKey.currentContext;
+              if (ctx != null) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(
+                    content: Text('Tu sesión expiró, vuelve a iniciar sesión.'),
+                  ),
+                );
+              }
+            });
+          }
+          _redirigiendoAlLogin = false;
+        }
+        handler.next(error);
+      },
+    ));
 
     return dio;
   }
