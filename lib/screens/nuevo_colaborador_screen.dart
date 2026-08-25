@@ -5,6 +5,7 @@ import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/screens/confirmar_otp_colaborador_screen.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/utils/validators.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  NuevoColaboradorScreen — crear (POST) o editar (PUT) un
@@ -42,8 +43,6 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
       TextEditingController(text: widget.existente?.apellidoMaterno ?? '');
   late final _dniCtrl =
       TextEditingController(text: widget.existente?.dni ?? '');
-  late final _usuarioCtrl =
-      TextEditingController(text: widget.existente?.usuario ?? '');
   late final _correoCtrl =
       TextEditingController(text: widget.existente?.correo ?? '');
   late final _telefonoCtrl =
@@ -85,9 +84,7 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
   }
 
   Future<void> _guardar() async {
-    final camposBase = _nombresCtrl.text.trim().isEmpty ||
-        _usuarioCtrl.text.trim().isEmpty ||
-        _idCargo == null;
+    final camposBase = _nombresCtrl.text.trim().isEmpty || _idCargo == null;
     final camposCreacion = !_esEdicion &&
         (_correoCtrl.text.trim().isEmpty ||
             _passwordCtrl.text.isEmpty ||
@@ -95,6 +92,32 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
 
     if (camposBase || camposCreacion) {
       setState(() => _error = 'Completa todos los campos obligatorios');
+      return;
+    }
+
+    // Validaciones de formato (DNI, correo, teléfono) — solo aplican si
+    // el campo corresponde según sea creación o edición.
+    if (!_esEdicion) {
+      final errorDni = Validators.dni(_dniCtrl.text);
+      if (errorDni != null) {
+        setState(() => _error = errorDni);
+        return;
+      }
+      final errorCorreo = Validators.correo(_correoCtrl.text);
+      if (errorCorreo != null) {
+        setState(() => _error = errorCorreo);
+        return;
+      }
+      final errorPassword = Validators.password(_passwordCtrl.text);
+      if (errorPassword != null) {
+        setState(() => _error = errorPassword);
+        return;
+      }
+    }
+    final errorTelefono =
+        Validators.telefono(_telefonoCtrl.text, obligatorio: false);
+    if (errorTelefono != null) {
+      setState(() => _error = errorTelefono);
       return;
     }
 
@@ -119,7 +142,6 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
           apellidoMaterno: _apMaternoCtrl.text.trim(),
           telefono: _telefonoCtrl.text.trim(),
           idCargo: _idCargo!,
-          usuario: _usuarioCtrl.text.trim(),
           estado: _estado,
         );
       } else {
@@ -134,7 +156,6 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
           password: _passwordCtrl.text,
           dni: _dniCtrl.text.trim(),
           idCargo: _idCargo!,
-          usuario: _usuarioCtrl.text.trim(),
         );
         if (!mounted) return;
         final creado = await Navigator.push<bool>(
@@ -166,7 +187,6 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
     _apPaternoCtrl.dispose();
     _apMaternoCtrl.dispose();
     _dniCtrl.dispose();
-    _usuarioCtrl.dispose();
     _correoCtrl.dispose();
     _telefonoCtrl.dispose();
     _passwordCtrl.dispose();
@@ -225,11 +245,8 @@ class _NuevoColaboradorScreenState extends State<NuevoColaboradorScreen> {
                     // Igual que el DNI: el backend no lo actualiza
                     // en la edición, solo se muestra de referencia.
                     soloLectura: _esEdicion),
-                const SizedBox(height: 12),
-                CampoTexto(
-                    controller: _usuarioCtrl,
-                    hint: 'Usuario',
-                    icono: Icons.alternate_email),
+                // Campo "Usuario" quitado: el backend lo genera solo a
+                // partir del correo (igual que en la web).
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
                   initialValue: _idCargo,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:movil/models/categoria_model.dart';
 import 'package:movil/services/categoria_service.dart';
+import 'package:movil/screens/subcategorias_screen.dart';
+import 'package:movil/widgets/exportar_menu_button.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
@@ -98,6 +100,15 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
         title: const Text('Categorías'),
         backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
+        actions: [
+          const ExportarMenuButton(
+              entidad: 'categorias', nombreArchivo: 'categorias'),
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Nueva Categoría',
+            onPressed: () => _abrirFormulario(),
+          ),
+        ],
       ),
       body: EstadoLista(
         cargando: _cargando,
@@ -111,6 +122,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
             itemCount: _categorias.length,
             itemBuilder: (ctx, i) {
               final c = _categorias[i];
+              final activo = c.estado == 'ACTIVO';
               return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: AppColors.verde.withOpacity(0.12),
@@ -119,26 +131,70 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                 ),
                 title: Text(c.nombre,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(c.descripcion ?? 'Sin descripción'),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (op) {
-                    if (op == 'editar') _abrirFormulario(existente: c);
-                    if (op == 'eliminar') _eliminar(c);
-                  },
-                  itemBuilder: (ctx) => const [
-                    PopupMenuItem(value: 'editar', child: Text('Editar')),
-                    PopupMenuItem(value: 'eliminar', child: Text('Eliminar')),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(c.descripcion?.isNotEmpty == true
+                        ? c.descripcion!
+                        : 'Sin descripción'),
+                    const SizedBox(height: 4),
+                    // Badge de Estado — igual que la columna "ESTADO"
+                    // de la tabla web.
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: activo ? AppColors.verde : Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        activo ? 'ACTIVO' : 'INACTIVO',
+                        style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                isThreeLine: true,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Botón "Subcategorías" — igual que el botón verde
+                    // de la tabla web, abre el CRUD de subcategorías
+                    // de ESTA categoría puntual.
+                    IconButton(
+                      icon: const Icon(Icons.account_tree_outlined,
+                          color: AppColors.verde),
+                      tooltip: 'Subcategorías',
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SubcategoriasScreen(
+                            idCategoria: c.idCategoria,
+                            nombreCategoria: c.nombre,
+                          ),
+                        ),
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      onSelected: (op) {
+                        if (op == 'editar') _abrirFormulario(existente: c);
+                        if (op == 'eliminar') _eliminar(c);
+                      },
+                      itemBuilder: (ctx) => const [
+                        PopupMenuItem(value: 'editar', child: Text('Editar')),
+                        PopupMenuItem(
+                            value: 'eliminar', child: Text('Eliminar')),
+                      ],
+                    ),
                   ],
                 ),
               );
             },
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.verde,
-        onPressed: () => _abrirFormulario(),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

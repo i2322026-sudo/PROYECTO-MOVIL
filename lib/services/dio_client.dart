@@ -15,7 +15,7 @@ class DioClient {
 
   static Dio _crear() {
     final dio = Dio(BaseOptions(
-      baseUrl: 'https://alivetagroveterinaria-web.onrender.com/api',
+      baseUrl: 'https://agropecuariorebeca.onrender.com/api',
       // El plan Free de Render "duerme" la instancia tras un rato de
       // inactividad, y el primer request tras eso puede tardar 50s+
       // solo en levantar el servidor (antes de que llegue a responder
@@ -40,8 +40,18 @@ class DioClient {
       // con un botón "Reintentar" que va a volver a fallar siempre
       // — acá se detecta el 401, se borra la sesión vieja, y se
       // manda directo al login con un aviso claro.
+      //
+      // OJO: el login (contraseña incorrecta) TAMBIÉN responde 401
+      // ("Credenciales incorrectas"), pero eso no es una sesión
+      // vencida — ahí nunca hubo sesión. Por eso solo se activa este
+      // mensaje si la petición llevaba un token guardado (es decir,
+      // ya había una sesión que se cortó a mitad de camino).
       onError: (error, handler) async {
-        if (error.response?.statusCode == 401 && !_redirigiendoAlLogin) {
+        final llevabaToken =
+            error.requestOptions.headers['Authorization'] != null;
+        if (error.response?.statusCode == 401 &&
+            llevabaToken &&
+            !_redirigiendoAlLogin) {
           _redirigiendoAlLogin = true;
           final prefs = await SharedPreferences.getInstance();
           await prefs.clear();

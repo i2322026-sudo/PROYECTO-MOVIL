@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:movil/services/usuario_service.dart';
-// import 'package:movil/services/notificacion_service.dart'; // desactivado para web/Chrome
+import 'package:movil/services/notificacion_service.dart';
 import 'package:movil/screens/dashboard_screen.dart';
 import 'package:movil/screens/verificar_otp_login_screen.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -39,6 +41,12 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    final errorCorreo = Validators.correo(correo);
+    if (errorCorreo != null) {
+      setState(() => _error = errorCorreo);
+      return;
+    }
+
     setState(() {
       _cargando = true;
       _error = '';
@@ -64,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // NotificacionService().inicializar(); // desactivado para web/Chrome
+      if (!kIsWeb) NotificacionService().inicializar();
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
@@ -86,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
-          'ALEVET',
+          'ALIVET',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: AppColors.verde,

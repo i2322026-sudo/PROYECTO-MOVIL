@@ -5,6 +5,7 @@ import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/widgets/exportar_menu_button.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  AnimalesScreen — mismo CRUD que la sección "Animales" del
@@ -97,6 +98,17 @@ class _AnimalesScreenState extends State<AnimalesScreen> {
         title: const Text('Tipos de Animal'),
         backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
+        actions: [
+          const ExportarMenuButton(
+              entidad: 'animales', nombreArchivo: 'tipos_de_animal'),
+          // "+ Nuevo Animal" en el encabezado, igual que el botón de
+          // la web (antes era un FloatingActionButton flotando abajo).
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Nuevo Animal',
+            onPressed: () => _abrirFormulario(),
+          ),
+        ],
       ),
       body: EstadoLista(
         cargando: _cargando,
@@ -110,6 +122,8 @@ class _AnimalesScreenState extends State<AnimalesScreen> {
             itemCount: _animales.length,
             itemBuilder: (ctx, i) {
               final a = _animales[i];
+              final esMayor = a.grupo == 'MAYOR';
+              final activo = a.estado == 'ACTIVO';
               return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: AppColors.verde.withOpacity(0.12),
@@ -117,6 +131,48 @@ class _AnimalesScreenState extends State<AnimalesScreen> {
                 ),
                 title: Text(a.nombre,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      // Badge de Grupo — mismo color que la tabla web:
+                      // celeste "Animal Menor", ámbar "Animal Mayor".
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: esMayor
+                              ? Colors.amber.shade700
+                              : Colors.lightBlue,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          esMayor ? 'Animal Mayor' : 'Animal Menor',
+                          style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: activo ? AppColors.verde : Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          activo ? 'ACTIVO' : 'INACTIVO',
+                          style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 trailing: PopupMenuButton<String>(
                   onSelected: (op) {
                     if (op == 'editar') _abrirFormulario(existente: a);
@@ -131,11 +187,6 @@ class _AnimalesScreenState extends State<AnimalesScreen> {
             },
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.verde,
-        onPressed: () => _abrirFormulario(),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -153,8 +204,14 @@ class _FormularioAnimalState extends State<_FormularioAnimal> {
   final _service = AnimalService();
   late final _nombreCtrl =
       TextEditingController(text: widget.animal?.nombre ?? '');
+  // Por defecto 'MENOR' al crear, igual que mostrarModalAnimal() en
+  // dashboard.js (ani-grupo.value = 'MENOR').
+  late String _grupo = widget.animal?.grupo ?? 'MENOR';
+  late String _estado = widget.animal?.estado ?? 'ACTIVO';
   bool _guardando = false;
   String? _error;
+
+  bool get _esEdicion => widget.animal != null;
 
   Future<void> _guardar() async {
     if (_nombreCtrl.text.trim().isEmpty) {
@@ -169,7 +226,10 @@ class _FormularioAnimalState extends State<_FormularioAnimal> {
     final animal = TipoAnimal(
       idTipoAnimal: widget.animal?.idTipoAnimal ?? 0,
       nombre: _nombreCtrl.text.trim(),
-      estado: 'ACTIVO',
+      grupo: _grupo,
+      // El estado solo se puede cambiar al editar — al crear siempre
+      // arranca ACTIVO, igual que guardarAnimal() en dashboard.js.
+      estado: _esEdicion ? _estado : 'ACTIVO',
     );
 
     try {
@@ -210,6 +270,41 @@ class _FormularioAnimalState extends State<_FormularioAnimal> {
               controller: _nombreCtrl,
               hint: 'Nombre (ej: Perro, Gato, Ave)',
               icono: Icons.pets),
+          const SizedBox(height: 16),
+          const Text('Grupo', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            initialValue: _grupo,
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+            items: const [
+              DropdownMenuItem(value: 'MENOR', child: Text('Animal Menor')),
+              DropdownMenuItem(value: 'MAYOR', child: Text('Animal Mayor')),
+            ],
+            onChanged: (v) => setState(() => _grupo = v ?? 'MENOR'),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Define en qué desplegable aparece en el catálogo y en el '
+            'formulario de productos.',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          // El Estado solo se puede cambiar al EDITAR — al crear un
+          // tipo de animal nuevo siempre arranca ACTIVO, igual que
+          // el modal web (campo-ani-estado oculto en creación).
+          if (_esEdicion) ...[
+            const SizedBox(height: 16),
+            const Text('Estado', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<String>(
+              initialValue: _estado,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 'ACTIVO', child: Text('Activo')),
+                DropdownMenuItem(value: 'INACTIVO', child: Text('Inactivo')),
+              ],
+              onChanged: (v) => setState(() => _estado = v ?? 'ACTIVO'),
+            ),
+          ],
           if (_error != null) ...[
             const SizedBox(height: 10),
             Text(_error!, style: const TextStyle(color: Colors.red)),

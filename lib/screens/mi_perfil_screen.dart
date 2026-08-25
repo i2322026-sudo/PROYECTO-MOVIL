@@ -3,6 +3,7 @@ import 'package:movil/services/usuario_service.dart';
 import 'package:movil/widgets/campo_texto.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/utils/validators.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  MiPerfilScreen — GET /api/auth/perfil, PUT
@@ -26,12 +27,28 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
 
   final _passActualCtrl = TextEditingController();
   final _passNuevaCtrl = TextEditingController();
+  final _passConfirmarCtrl = TextEditingController();
 
   bool _cargando = true;
   bool _guardando = false;
   bool _cambiandoPassword = false;
   String? _error;
+  String? _errorPassword;
   String? _correo;
+
+  // Errores por campo, mostrados justo debajo de esa casilla.
+  String? _errorNombres;
+  String? _errorApPaterno;
+  String? _errorApMaterno;
+  String? _errorTelefono;
+  String? _errorPassActual;
+  String? _errorPassNueva;
+  String? _errorPassConfirmar;
+
+  // Mostrar/ocultar cada campo de contraseña por separado.
+  bool _verPassActual = false;
+  bool _verPassNueva = false;
+  bool _verPassConfirmar = false;
 
   @override
   void initState() {
@@ -63,6 +80,27 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
   }
 
   Future<void> _guardarPerfil() async {
+    final errorNombres = Validators.nombre(_nombresCtrl.text, campo: 'el nombre');
+    final errorApPaterno =
+        Validators.nombre(_apPaternoCtrl.text, campo: 'el apellido paterno');
+    final errorApMaterno =
+        Validators.nombre(_apMaternoCtrl.text, campo: 'el apellido materno');
+    final errorTelefono =
+        Validators.telefono(_telefonoCtrl.text, obligatorio: false);
+
+    setState(() {
+      _errorNombres = errorNombres;
+      _errorApPaterno = errorApPaterno;
+      _errorApMaterno = errorApMaterno;
+      _errorTelefono = errorTelefono;
+    });
+
+    if (errorNombres != null ||
+        errorApPaterno != null ||
+        errorApMaterno != null ||
+        errorTelefono != null) {
+      return;
+    }
     setState(() {
       _guardando = true;
       _error = null;
@@ -87,10 +125,26 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
   }
 
   Future<void> _cambiarPassword() async {
-    if (_passActualCtrl.text.isEmpty || _passNuevaCtrl.text.isEmpty) return;
+    final errorActual = _passActualCtrl.text.isEmpty
+        ? 'Ingresa tu contraseña actual'
+        : null;
+    final errorNueva = Validators.password(_passNuevaCtrl.text);
+    final errorConfirmar = Validators.confirmarPassword(
+        _passNuevaCtrl.text, _passConfirmarCtrl.text);
+
+    setState(() {
+      _errorPassActual = errorActual;
+      _errorPassNueva = errorNueva;
+      _errorPassConfirmar = errorConfirmar;
+    });
+
+    if (errorActual != null || errorNueva != null || errorConfirmar != null) {
+      return;
+    }
+
     setState(() {
       _cambiandoPassword = true;
-      _error = null;
+      _errorPassActual = null;
     });
     try {
       final resultado = await _service.cambiarPassword(
@@ -110,10 +164,13 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
           const SnackBar(content: Text('Contraseña cambiada correctamente')));
       _passActualCtrl.clear();
       _passNuevaCtrl.clear();
+      _passConfirmarCtrl.clear();
       setState(() => _cambiandoPassword = false);
     } catch (e) {
+      // El caso más común aquí es "Contraseña actual incorrecta" —
+      // se muestra justo debajo de ese campo, no como aviso genérico.
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _errorPassActual = e.toString().replaceFirst('Exception: ', '');
         _cambiandoPassword = false;
       });
     }
@@ -132,7 +189,7 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ingresa el código de 6 dígitos enviado a $_correo',
+            Text('Ingresa el código de 5 dígitos enviado a $_correo',
                 style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
             const SizedBox(height: 12),
             TextField(
@@ -174,10 +231,11 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
           const SnackBar(content: Text('Contraseña cambiada correctamente')));
       _passActualCtrl.clear();
       _passNuevaCtrl.clear();
+      _passConfirmarCtrl.clear();
       setState(() => _cambiandoPassword = false);
     } catch (e) {
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _errorPassword = e.toString().replaceFirst('Exception: ', '');
         _cambiandoPassword = false;
       });
     }
@@ -191,6 +249,7 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
     _telefonoCtrl.dispose();
     _passActualCtrl.dispose();
     _passNuevaCtrl.dispose();
+    _passConfirmarCtrl.dispose();
     super.dispose();
   }
 
@@ -216,23 +275,42 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
                 CampoTexto(
                     controller: _nombresCtrl,
                     hint: 'Nombres',
-                    icono: Icons.person_outline),
+                    icono: Icons.person_outline,
+                    inputFormatters: Validators.formatoNombre,
+                    errorText: _errorNombres,
+                    onFocusLost: () => setState(() => _errorNombres =
+                        Validators.nombre(_nombresCtrl.text, campo: 'el nombre'))),
                 const SizedBox(height: 12),
                 CampoTexto(
                     controller: _apPaternoCtrl,
                     hint: 'Apellido paterno',
-                    icono: Icons.badge_outlined),
+                    icono: Icons.badge_outlined,
+                    inputFormatters: Validators.formatoNombre,
+                    errorText: _errorApPaterno,
+                    onFocusLost: () => setState(() => _errorApPaterno =
+                        Validators.nombre(_apPaternoCtrl.text,
+                            campo: 'el apellido paterno'))),
                 const SizedBox(height: 12),
                 CampoTexto(
                     controller: _apMaternoCtrl,
                     hint: 'Apellido materno',
-                    icono: Icons.badge_outlined),
+                    icono: Icons.badge_outlined,
+                    inputFormatters: Validators.formatoNombre,
+                    errorText: _errorApMaterno,
+                    onFocusLost: () => setState(() => _errorApMaterno =
+                        Validators.nombre(_apMaternoCtrl.text,
+                            campo: 'el apellido materno'))),
                 const SizedBox(height: 12),
                 CampoTexto(
                     controller: _telefonoCtrl,
                     hint: 'Teléfono',
                     icono: Icons.phone_outlined,
-                    teclado: TextInputType.phone),
+                    teclado: TextInputType.phone,
+                    inputFormatters: Validators.formatoCelular,
+                    errorText: _errorTelefono,
+                    onFocusLost: () => setState(() => _errorTelefono =
+                        Validators.telefono(_telefonoCtrl.text,
+                            obligatorio: false))),
                 if (_error != null) ...[
                   const SizedBox(height: 14),
                   Text(_error!, style: const TextStyle(color: Colors.red)),
@@ -252,13 +330,48 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
                     controller: _passActualCtrl,
                     hint: 'Contraseña actual',
                     icono: Icons.lock_outline,
-                    oculto: true),
+                    oculto: !_verPassActual,
+                    errorText: _errorPassActual,
+                    sufijo: IconButton(
+                      icon: Icon(_verPassActual
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => _verPassActual = !_verPassActual),
+                    )),
                 const SizedBox(height: 12),
                 CampoTexto(
                     controller: _passNuevaCtrl,
                     hint: 'Contraseña nueva',
                     icono: Icons.lock_reset,
-                    oculto: true),
+                    oculto: !_verPassNueva,
+                    errorText: _errorPassNueva,
+                    sufijo: IconButton(
+                      icon: Icon(_verPassNueva
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => _verPassNueva = !_verPassNueva),
+                    )),
+                const SizedBox(height: 12),
+                CampoTexto(
+                    controller: _passConfirmarCtrl,
+                    hint: 'Confirmar contraseña nueva',
+                    icono: Icons.lock_reset,
+                    oculto: !_verPassConfirmar,
+                    errorText: _errorPassConfirmar,
+                    sufijo: IconButton(
+                      icon: Icon(_verPassConfirmar
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () => setState(
+                          () => _verPassConfirmar = !_verPassConfirmar),
+                    )),
+                if (_errorPassword != null) ...[
+                  const SizedBox(height: 14),
+                  Text(_errorPassword!,
+                      style: const TextStyle(color: Colors.red)),
+                ],
                 const SizedBox(height: 18),
                 BotonPrincipal(
                   texto: 'Cambiar contraseña',

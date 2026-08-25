@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movil/models/producto_model.dart';
 import 'package:movil/services/producto_service.dart';
+import 'package:movil/services/api_config.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/app_colors.dart';
 
@@ -46,6 +47,76 @@ class _ProntoVencerScreenState extends State<ProntoVencerScreen> {
         _cargando = false;
       });
     }
+  }
+
+  /// Foto real del producto (misma resolución de URL que usa
+  /// TarjetaProducto/dashboard.js) con un badge pequeño superpuesto
+  /// que conserva la señal de "vencido"/"por vencer" que antes daba
+  /// el ícono solo. Si no hay imagen o falla la carga, cae al mismo
+  /// ícono de reloj/error que se usaba antes.
+  Widget _miniaturaConEstado(Producto p, bool vencido) {
+    final url = ApiConfig.urlImagen(p.imagen);
+    final colorEstado = vencido ? Colors.red : Colors.orange;
+    final iconoEstado =
+        vencido ? Icons.error_outline : Icons.hourglass_bottom;
+
+    Widget base;
+    if (url == null) {
+      base = CircleAvatar(
+        backgroundColor: colorEstado.withOpacity(0.12),
+        child: Icon(iconoEstado, color: colorEstado),
+      );
+    } else {
+      base = ClipOval(
+        child: Image.network(
+          url,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          loadingBuilder: (ctx, child, progreso) => progreso == null
+              ? child
+              : Container(
+                  width: 40,
+                  height: 40,
+                  color: colorEstado.withOpacity(0.12),
+                  child: const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+          errorBuilder: (ctx, error, stack) => Container(
+            width: 40,
+            height: 40,
+            color: colorEstado.withOpacity(0.12),
+            child: Icon(iconoEstado, color: colorEstado, size: 20),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          base,
+          Positioned(
+            right: -4,
+            bottom: -4,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: colorEstado, width: 1),
+              ),
+              child: Icon(iconoEstado, color: colorEstado, size: 12),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -95,10 +166,7 @@ class _ProntoVencerScreenState extends State<ProntoVencerScreen> {
                     final dias = p.diasRestantes ?? 0;
                     final vencido = dias < 0;
                     return ListTile(
-                      leading: Icon(
-                        vencido ? Icons.error_outline : Icons.hourglass_bottom,
-                        color: vencido ? Colors.red : Colors.orange,
-                      ),
+                      leading: _miniaturaConEstado(p, vencido),
                       title: Text(p.nombre),
                       subtitle:
                           Text(p.fechaVencimiento?.split('T').first ?? '-'),

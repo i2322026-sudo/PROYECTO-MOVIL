@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/producto_model.dart';
+import '../services/api_config.dart';
 import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -35,9 +36,57 @@ class TarjetaProducto extends StatelessWidget {
       (producto.composicion?.isNotEmpty ?? false) ||
       (producto.modoUso?.isNotEmpty ?? false);
 
+  /// Miniatura circular con la imagen real del producto (misma
+  /// resolución de URL que dashboard.js: completa tal cual, o
+  /// /img/productos/<archivo> del backend). Si no hay imagen, o la
+  /// URL falla al cargar (archivo borrado, sin internet, etc.), cae
+  /// al mismo ícono verde de reemplazo que ya se usaba antes —
+  /// nunca deja un hueco en blanco.
+  Widget _miniaturaProducto() {
+    final url = ApiConfig.urlImagen(producto.imagen);
+    final fondo = AppColors.verde.withOpacity(0.12);
+
+    if (url == null) {
+      return CircleAvatar(
+        backgroundColor: fondo,
+        child: const Icon(Icons.inventory_2_outlined, color: AppColors.verde),
+      );
+    }
+
+    return ClipOval(
+      child: Image.network(
+        url,
+        width: 40,
+        height: 40,
+        fit: BoxFit.cover,
+        loadingBuilder: (ctx, child, progreso) {
+          if (progreso == null) return child;
+          return Container(
+            width: 40,
+            height: 40,
+            color: fondo,
+            child: const Padding(
+              padding: EdgeInsets.all(10),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: AppColors.verde),
+            ),
+          );
+        },
+        errorBuilder: (ctx, error, stack) => Container(
+          width: 40,
+          height: 40,
+          color: fondo,
+          child: const Icon(Icons.inventory_2_outlined,
+              color: AppColors.verde, size: 20),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activo = producto.estado == 'ACTIVO';
+    final archivado = producto.estado == 'ARCHIVADO';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -52,12 +101,7 @@ class TarjetaProducto extends StatelessWidget {
               onTap: onTap,
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor:
-                        AppColors.verde.withOpacity(0.12),
-                    child: const Icon(Icons.inventory_2_outlined,
-                        color: AppColors.verde),
-                  ),
+                  _miniaturaProducto(),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -73,7 +117,20 @@ class TarjetaProducto extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (!activo)
+                            if (archivado)
+                              Container(
+                                margin: const EdgeInsets.only(left: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade800,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text('Archivado',
+                                    style: TextStyle(
+                                        fontSize: 11, color: Colors.white)),
+                              )
+                            else if (!activo)
                               Container(
                                 margin: const EdgeInsets.only(left: 6),
                                 padding: const EdgeInsets.symmetric(
@@ -128,41 +185,56 @@ class TarjetaProducto extends StatelessWidget {
             const SizedBox(height: 6),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (_tieneFichaTecnica)
-                  IconButton(
-                    icon: const Icon(Icons.description_outlined, size: 20),
-                    color: Colors.blue,
-                    tooltip: 'Ver instrucciones',
-                    onPressed: onVerFicha,
-                  ),
-                if (onEditar != null)
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 20),
-                    color: Colors.blueGrey,
-                    tooltip: 'Editar',
-                    onPressed: onEditar,
-                  ),
-                if (onToggleEstado != null)
-                  IconButton(
-                    icon: Icon(
-                      activo
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      size: 20,
-                    ),
-                    color: activo ? Colors.orange : Colors.blueGrey,
-                    tooltip: activo ? 'Desactivar' : 'Activar',
-                    onPressed: onToggleEstado,
-                  ),
-                if (onEliminar != null)
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    color: Colors.red,
-                    tooltip: 'Eliminar',
-                    onPressed: onEliminar,
-                  ),
-              ],
+              children: archivado
+                  ? [
+                      // Un producto archivado solo se puede "Restaurar"
+                      // (vuelve a ACTIVO) — no tiene sentido ofrecer
+                      // Editar/Desactivar/Eliminar sobre algo que ya
+                      // está fuera de circulación (igual que dashboard.js).
+                      if (onToggleEstado != null)
+                        IconButton(
+                          icon: const Icon(Icons.restore, size: 20),
+                          color: AppColors.verde,
+                          tooltip: 'Restaurar producto',
+                          onPressed: onToggleEstado,
+                        ),
+                    ]
+                  : [
+                      if (_tieneFichaTecnica)
+                        IconButton(
+                          icon: const Icon(Icons.description_outlined,
+                              size: 20),
+                          color: Colors.blue,
+                          tooltip: 'Ver instrucciones',
+                          onPressed: onVerFicha,
+                        ),
+                      if (onEditar != null)
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          color: Colors.blueGrey,
+                          tooltip: 'Editar',
+                          onPressed: onEditar,
+                        ),
+                      if (onToggleEstado != null)
+                        IconButton(
+                          icon: Icon(
+                            activo
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            size: 20,
+                          ),
+                          color: activo ? Colors.orange : Colors.blueGrey,
+                          tooltip: activo ? 'Desactivar' : 'Activar',
+                          onPressed: onToggleEstado,
+                        ),
+                      if (onEliminar != null)
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          color: Colors.red,
+                          tooltip: 'Eliminar',
+                          onPressed: onEliminar,
+                        ),
+                    ],
             ),
           ],
         ),

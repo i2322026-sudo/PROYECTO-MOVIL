@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:movil/screens/login_screen.dart';
 import 'package:movil/core/app_navigator.dart';
 import 'package:movil/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  main.dart — único punto de entrada de la app.
-//  Firebase desactivado para web/Chrome.
-//  Al correr en Android físico, descomentar Firebase.initializeApp()
+//  Firebase se inicializa siempre. En Android usa automáticamente
+//  google-services.json (ya está en android/app/), así que no
+//  hace falta pasarle FirebaseOptions manualmente.
 // ─────────────────────────────────────────────────────────────
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(); // descomentar solo para Android
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    // Si falla (ej. corriendo en Chrome/web sin configurar), la app
+    // sigue funcionando igual; solo no habrá notificaciones push.
+    debugPrint('Firebase no se pudo inicializar: $e');
+  }
   runApp(const MyApp());
 }
 
@@ -23,11 +31,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      title: 'ALEVET',
-      // Español en todos los widgets nativos: selector de fecha
-      // (showDatePicker), nombres de mes/día, botones "OK"/"Cancel"
-      // → "Aceptar"/"Cancelar", etc. Sin esto, esos textos siempre
-      // salen en inglés sin importar el idioma del celular.
+      title: 'ALIVET',
+      // Español en todos los widgets nativos: selector de fecha678.
       locale: const Locale('es', 'ES'),
       supportedLocales: const [
         Locale('es', 'ES'),

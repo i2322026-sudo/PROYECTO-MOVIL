@@ -11,6 +11,9 @@ class Cliente {
   final String? telefono;
   final String? numeroDocumento;
   final String? fechaRegistro;
+  // 'ACTIVO' | 'INACTIVO' — p.estado ya venía en la consulta real
+  // (cliente.model.js), solo no se estaba leyendo del lado del móvil.
+  final String estado;
 
   Cliente({
     required this.idPersona,
@@ -19,6 +22,7 @@ class Cliente {
     this.telefono,
     this.numeroDocumento,
     this.fechaRegistro,
+    this.estado = 'ACTIVO',
   });
 
   factory Cliente.fromJson(Map<String, dynamic> json) => Cliente(
@@ -28,5 +32,6 @@ class Cliente {
         telefono: json['telefono'] as String?,
         numeroDocumento: json['numero_documento'] as String?,
         fechaRegistro: json['fecha_registro'] as String?,
+        estado: (json['estado'] as String?) ?? 'ACTIVO',
       );
 }

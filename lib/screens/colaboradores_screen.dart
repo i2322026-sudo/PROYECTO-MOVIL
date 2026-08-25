@@ -4,6 +4,8 @@ import 'package:movil/services/colaborador_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/screens/nuevo_colaborador_screen.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/widgets/exportar_menu_button.dart';
+import 'package:movil/widgets/campo_texto.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  ColaboradoresScreen — GET /api/colaboradores (lista real,
@@ -48,42 +50,178 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
     }
   }
 
+  // Igual que "Mi perfil": PASO 1 pide contraseña actual + nueva +
+  // confirmación y manda el código OTP al correo del colaborador.
+  // PASO 2 pide ese código y recién ahí se guarda la nueva contraseña.
   Future<void> _resetearPassword(Colaborador c) async {
-    final ctrl = TextEditingController();
-    final nueva = await showDialog<String>(
+    final actualCtrl = TextEditingController();
+    final nuevaCtrl = TextEditingController();
+    final confirmarCtrl = TextEditingController();
+    String? error;
+    bool enviando = false;
+
+    final pendingId = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Restablecer contraseña de ${c.nombreCompleto}'),
-        content: TextField(
-          controller: ctrl,
-          obscureText: true,
-          decoration: const InputDecoration(
-            labelText: 'Contraseña nueva',
-            helperText: 'Mínimo 8 caracteres, con letras y números',
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) => AlertDialog(
+          title: Text('Cambiar contraseña de ${c.nombreCompleto}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Para autorizar el cambio, confirma TU contraseña '
+                    '(la de tu propia sesión), no la de este colaborador.',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+                CampoTexto(
+                    controller: actualCtrl,
+                    hint: 'Tu contraseña',
+                    icono: Icons.lock_outline,
+                    oculto: true),
+                const SizedBox(height: 12),
+                CampoTexto(
+                    controller: nuevaCtrl,
+                    hint: 'Contraseña nueva',
+                    icono: Icons.lock_reset,
+                    oculto: true),
+                const SizedBox(height: 4),
+                const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: Text('Mínimo 8 caracteres, con letras y números',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                ),
+                const SizedBox(height: 12),
+                CampoTexto(
+                    controller: confirmarCtrl,
+                    hint: 'Confirmar contraseña',
+                    icono: Icons.lock_reset,
+                    oculto: true),
+                if (error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(error!, style: const TextStyle(color: Colors.red)),
+                ],
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancelar')),
+            TextButton(
+              onPressed: enviando
+                  ? null
+                  : () async {
+                      if (actualCtrl.text.isEmpty) {
+                        setStateDialog(
+                            () => error = 'Ingresa la contraseña actual');
+                        return;
+                      }
+                      if (nuevaCtrl.text.isEmpty) {
+                        setStateDialog(
+                            () => error = 'Ingresa la nueva contraseña');
+                        return;
+                      }
+                      if (nuevaCtrl.text != confirmarCtrl.text) {
+                        setStateDialog(
+                            () => error = 'Las contraseñas no coinciden');
+                        return;
+                      }
+                      setStateDialog(() {
+                        enviando = true;
+                        error = null;
+                      });
+                      try {
+                        final id = await _service.solicitarResetPassword(
+                          id: c.idColaborador,
+                          passwordActual: actualCtrl.text,
+                          passwordNueva: nuevaCtrl.text,
+                        );
+                        if (ctx.mounted) Navigator.pop(ctx, id);
+                      } catch (e) {
+                        setStateDialog(() {
+                          enviando = false;
+                          error = e.toString().replaceFirst('Exception: ', '');
+                        });
+                      }
+                    },
+              child: enviando
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Enviar código'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar')),
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text),
-              child: const Text('Restablecer')),
-        ],
       ),
     );
-    if (nueva == null || nueva.trim().isEmpty) return;
 
-    try {
-      await _service.resetPassword(c.idColaborador, nueva.trim());
-      if (!mounted) return;
+    if (pendingId == null || !mounted) return;
+
+    // PASO 2: pide el código que llegó al correo del colaborador.
+    final otpCtrl = TextEditingController();
+    String? errorOtp;
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) => AlertDialog(
+          title: const Text('Verificar código'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Ingresa el código de 5 dígitos enviado al correo '
+                  'de ${c.nombreCompleto}.'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: otpCtrl,
+                keyboardType: TextInputType.number,
+                maxLength: 5,
+                decoration: const InputDecoration(labelText: 'Código OTP'),
+              ),
+              if (errorOtp != null) ...[
+                const SizedBox(height: 8),
+                Text(errorOtp!, style: const TextStyle(color: Colors.red)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () async {
+                if (otpCtrl.text.trim().length != 5) {
+                  setStateDialog(
+                      () => errorOtp = 'Ingresa el código de 5 dígitos');
+                  return;
+                }
+                try {
+                  await _service.confirmarResetPassword(
+                    id: c.idColaborador,
+                    pendingId: pendingId,
+                    otp: otpCtrl.text.trim(),
+                  );
+                  if (ctx.mounted) Navigator.pop(ctx, true);
+                } catch (e) {
+                  setStateDialog(() => errorOtp =
+                      e.toString().replaceFirst('Exception: ', ''));
+                }
+              },
+              child: const Text('Confirmar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    if (confirmado == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contraseña restablecida')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
+          const SnackBar(content: Text('Contraseña cambiada correctamente')));
     }
   }
 
@@ -135,6 +273,22 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
         title: const Text('Colaboradores'),
         backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
+        actions: [
+          const ExportarMenuButton(
+              entidad: 'colaboradores', nombreArchivo: 'colaboradores'),
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Nuevo Colaborador',
+            onPressed: () async {
+              final creado = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const NuevoColaboradorScreen()),
+              );
+              if (creado == true) _cargar();
+            },
+          ),
+        ],
       ),
       body: EstadoLista(
         cargando: _cargando,
@@ -250,17 +404,6 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
             },
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.verde,
-        onPressed: () async {
-          final creado = await Navigator.push<bool>(
-            context,
-            MaterialPageRoute(builder: (_) => const NuevoColaboradorScreen()),
-          );
-          if (creado == true) _cargar();
-        },
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

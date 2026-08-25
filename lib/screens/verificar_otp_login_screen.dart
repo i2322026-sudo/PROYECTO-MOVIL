@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:movil/services/usuario_service.dart';
+import 'package:movil/services/notificacion_service.dart';
 import 'package:movil/screens/dashboard_screen.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/utils/validators.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  VerificarOtpLoginScreen — paso 2 del login, EN CADA INGRESO
@@ -33,7 +36,12 @@ class _VerificarOtpLoginScreenState extends State<VerificarOtpLoginScreen> {
 
   Future<void> _verificar() async {
     if (_otpCtrl.text.trim().length != 5) {
-      setState(() => _error = 'Ingresa el código de 6 dígitos');
+      setState(() => _error = 'Ingresa el código de 5 dígitos');
+      return;
+    }
+    final errorOtp = Validators.otp(_otpCtrl.text);
+    if (errorOtp != null) {
+      setState(() => _error = errorOtp);
       return;
     }
     setState(() {
@@ -47,6 +55,7 @@ class _VerificarOtpLoginScreenState extends State<VerificarOtpLoginScreen> {
         correo: widget.correo,
       );
       if (!mounted) return;
+      if (!kIsWeb) NotificacionService().inicializar();
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
@@ -82,7 +91,7 @@ class _VerificarOtpLoginScreenState extends State<VerificarOtpLoginScreen> {
             const Icon(Icons.shield_outlined, size: 48, color: AppColors.verde),
             const SizedBox(height: 16),
             Text(
-              'Por seguridad, mandamos un código de 6 dígitos a ${widget.correo}. '
+              'Por seguridad, mandamos un código de 5 dígitos a ${widget.correo}. '
               'Escribilo para completar el ingreso.',
               style: TextStyle(color: Colors.grey.shade700),
             ),

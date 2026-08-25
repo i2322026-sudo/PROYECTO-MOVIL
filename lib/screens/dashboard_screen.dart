@@ -7,10 +7,9 @@ import 'package:movil/services/pedido_service.dart';
 import 'package:movil/services/producto_service.dart';
 import 'package:movil/widgets/tarjeta_resumen.dart';
 import 'package:movil/screens/productos_screen.dart';
-import 'package:movil/screens/gestion_pedido_screen.dart';
 import 'package:movil/screens/bajo_stock_screen.dart';
 import 'package:movil/screens/pronto_vencer_screen.dart';
-import 'package:movil/screens/grafico_ventas_screen.dart';
+import 'package:movil/screens/reportes_screen.dart';
 import 'package:movil/screens/gestion_ventas_screen.dart';
 import 'package:movil/screens/escanear_producto_screen.dart';
 import 'package:movil/screens/promociones_screen.dart';
@@ -20,6 +19,7 @@ import 'package:movil/screens/categorias_screen.dart';
 import 'package:movil/screens/animales_screen.dart';
 import 'package:movil/screens/clientes_screen.dart';
 import 'package:movil/screens/colaboradores_screen.dart';
+import 'package:movil/screens/gestion_evidencias_screen.dart';
 import 'package:movil/screens/login_screen.dart';
 import 'package:movil/app_colors.dart';
 
@@ -174,14 +174,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   childAspectRatio: 1.4,
                   children: [
                     TarjetaResumen(
-                      titulo: 'Pedidos',
+                      titulo: 'Venta',
                       valor: '$_totalPedidos',
                       icono: Icons.receipt_long_outlined,
                       color: AppColors.verde,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const GestionPedidoScreen()),
+                            builder: (_) => const GestionVentasScreen()),
                       ),
                     ),
                     // "Por vencer", "Productos activos" y "Stock bajo"
@@ -266,15 +266,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   _accesoRapido(
                     context,
-                    icono: Icons.receipt_long_outlined,
-                    texto: 'Ventas',
-                    destino: const GestionVentasScreen(),
-                  ),
-                  _accesoRapido(
-                    context,
                     icono: Icons.people_alt_outlined,
                     texto: 'Clientes',
                     destino: const ClientesScreen(),
+                  ),
+                  // Evidencia de cancelación (repartidor): busca el
+                  // pedido por su N° de boleta/factura, sube una foto
+                  // y lo marca CANCELADO en un solo paso. Visible para
+                  // cualquier colaborador, no solo Administrador/Gerente
+                  // — lo usa quien reparte en la calle.
+                  _accesoRapido(
+                    context,
+                    icono: Icons.camera_alt_outlined,
+                    texto: 'Evidencia',
+                    destino: const GestionEvidenciasScreen(),
+                  ),
+                  // "Reportes" (KPIs + stock bajo + exportar PDF/Excel/
+                  // Power BI): en la web NO tiene restricción de cargo
+                  // (reporte.routes.js solo exige verificarRol('COLABORADOR'),
+                  // sin verificarCargo) — cualquier colaborador entra,
+                  // así que acá tampoco se filtra por _esAdministrador
+                  // ni _puedeGestionarInventario.
+                  _accesoRapido(
+                    context,
+                    icono: Icons.analytics_outlined,
+                    texto: 'Reportes',
+                    destino: const ReportesScreen(),
                   ),
                   // Nuevo producto / Gráficos / Categorías / Animales:
                   // gestión de catálogo e información de negocio —
@@ -286,12 +303,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icono: Icons.add_box_outlined,
                       texto: 'Nuevo producto',
                       destino: const NuevoProductoScreen(),
-                    ),
-                    _accesoRapido(
-                      context,
-                      icono: Icons.show_chart,
-                      texto: 'Gráficos',
-                      destino: const GraficoVentasScreen(),
                     ),
                     _accesoRapido(
                       context,
@@ -338,7 +349,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const GestionPedidoScreen()),
+        MaterialPageRoute(builder: (_) => const GestionVentasScreen()),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),

@@ -13,6 +13,7 @@ class Venta {
   final double total;
   final String metodoPago;
   final String estado; // PAGADO | ENTREGADO
+  final String tipoEntrega; // DELIVERY | RECOJO_TIENDA
 
   Venta({
     required this.idPedido,
@@ -23,6 +24,7 @@ class Venta {
     required this.total,
     required this.metodoPago,
     required this.estado,
+    required this.tipoEntrega,
   });
 
   factory Venta.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class Venta {
       total: double.tryParse(json['total'].toString()) ?? 0.0,
       metodoPago: (json['metodo_pago'] as String?) ?? '-',
       estado: (json['estado'] as String?) ?? '-',
+      tipoEntrega: (json['tipo_entrega'] as String?) ?? 'DELIVERY',
     );
   }
 }

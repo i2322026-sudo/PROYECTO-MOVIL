@@ -15,6 +15,7 @@ class Producto {
   final double precioVenta;
   final String? codigoBarra;
   final int? idCategoria;
+  final int? idSubcategoria;
   final int? idTipoAnimal;
   final int stockActual;
   final int stockMinimo;
@@ -42,6 +43,13 @@ class Producto {
   // Quincena/Mes en la pantalla de Inventario.
   final String? fechaCreacion;
 
+  // Hasta 2 imágenes secundarias (opcional) — mismo campo
+  // `imagenes_secundarias` que ya lee producto.controller.js al
+  // crear/actualizar (crea/agregarSiNoExiste una fila en
+  // imagen_producto por cada URL no vacía).
+  final String? imagenSecundaria1;
+  final String? imagenSecundaria2;
+
   Producto({
     required this.idProducto,
     required this.nombre,
@@ -50,6 +58,7 @@ class Producto {
     required this.precioVenta,
     this.codigoBarra,
     this.idCategoria,
+    this.idSubcategoria,
     this.idTipoAnimal,
     required this.stockActual,
     required this.stockMinimo,
@@ -66,6 +75,8 @@ class Producto {
     this.tipoAnimal,
     this.diasRestantes,
     this.fechaCreacion,
+    this.imagenSecundaria1,
+    this.imagenSecundaria2,
   });
 
   bool get stockBajo => stockActual <= stockMinimo;
@@ -79,6 +90,7 @@ class Producto {
       precioVenta: double.tryParse(json['precio_venta'].toString()) ?? 0.0,
       codigoBarra: json['codigo_barra'] as String?,
       idCategoria: json['id_categoria'] as int?,
+      idSubcategoria: json['id_subcategoria'] as int?,
       idTipoAnimal: json['id_tipo_animal'] as int?,
       stockActual: (json['stock_actual'] as int?) ?? 0,
       stockMinimo: (json['stock_minimo'] as int?) ?? 0,
@@ -109,6 +121,7 @@ class Producto {
         'precio_venta': precioVenta,
         'codigo_barra': codigoBarra,
         'id_categoria': idCategoria,
+        'id_subcategoria': idSubcategoria,
         'id_tipo_animal': idTipoAnimal,
         'stock_actual': stockActual,
         'stock_minimo': stockMinimo,
@@ -120,5 +133,9 @@ class Producto {
         'ficha_tecnica': fichaTecnica,
         'composicion': composicion,
         'modo_uso': modoUso,
+        // El backend ya filtra vacíos y corta a 2 (producto.controller.js
+        // -> .filter(Boolean).slice(0, 2)), así que basta con mandar la
+        // lista tal cual, incluso con huecos null.
+        'imagenes_secundarias': [imagenSecundaria1, imagenSecundaria2],
       };
 }

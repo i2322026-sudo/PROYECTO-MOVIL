@@ -16,6 +16,22 @@ class ClienteService extends BaseService {
     }
   }
 
+  /// PUT /api/clientes/:idPersona/estado — activar/desactivar, igual
+  /// que toggleCliente() en dashboard.js. Nunca se elimina físicamente
+  /// (el cliente puede tener pedidos/comprobantes que deben conservar
+  /// su referencia) — desactivar solo le impide iniciar sesión y
+  /// comprar, sin perder su historial.
+  Future<void> cambiarEstado(int idPersona, String estado) async {
+    try {
+      await dio.put(
+        '${ApiConfig.clientes}/$idPersona/estado',
+        data: {'estado': estado},
+      );
+    } on DioException catch (e) {
+      throw errorDe(e);
+    }
+  }
+
   /// DELETE /api/clientes/:idPersona — Administrador/Gerente. El
   /// backend lo bloquea con 409 si el cliente tiene pedidos
   /// registrados (no se pierde historial de ventas por error).

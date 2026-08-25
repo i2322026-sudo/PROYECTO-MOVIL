@@ -4,6 +4,7 @@ import 'package:movil/services/producto_service.dart';
 import 'package:movil/widgets/tarjeta_producto.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/screens/productos_screen.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  BajoStockScreen — GET /api/inventario/bajo-stock SÍ existe
@@ -60,6 +61,12 @@ class _BajoStockScreenState extends State<BajoStockScreen> {
       body: EstadoLista(
         cargando: _cargando,
         error: _error,
+        // Antes se separaba en Activos/Inactivos; ahora el backend ya
+        // filtra p.estado != 'ARCHIVADO' del lado del servidor (deja
+        // pasar Activos E Inactivos —un producto Inactivo puede seguir
+        // necesitando la alerta, ya que se reactiva solo al reponerle
+        // stock—, y solo bloquea los Archivados). El badge "Inactivo"
+        // de TarjetaProducto ya distingue visualmente esos casos.
         vacio: _productos.isEmpty,
         mensajeVacio: '¡Todo el inventario está en buen nivel! 🎉',
         onReintentar: _cargar,
@@ -67,7 +74,13 @@ class _BajoStockScreenState extends State<BajoStockScreen> {
           onRefresh: _cargar,
           child: ListView.builder(
             itemCount: _productos.length,
-            itemBuilder: (ctx, i) => TarjetaProducto(producto: _productos[i]),
+            itemBuilder: (ctx, i) => TarjetaProducto(
+              producto: _productos[i],
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProductosScreen()),
+              ),
+            ),
           ),
         ),
       ),

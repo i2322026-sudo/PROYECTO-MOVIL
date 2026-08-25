@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "15751449528",
+    "project_id": "agroveterinaria-35fbd",
+    "storage_bucket": "agroveterinaria-35fbd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:15751449528:android:7b147a334c275f251d9d4d",
+        "android_client_info": {
+          "package_name": "com.alivet.agroveterinaria"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBENpeBJn0aFd6icpOv2287_t7oX0TUlJE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

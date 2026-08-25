@@ -20,6 +20,10 @@ class ProductoService extends BaseService {
     double? precioMin,
     double? precioMax,
     int? idTipoAnimal,
+    // 'activos' (todo menos lo archivado) o 'archivados' — mismo
+    // patrón que vistaProductosActual en dashboard.js. Por defecto
+    // 'activos', igual que abre la pestaña web.
+    String vista = 'activos',
   }) async {
     try {
       final res = await dio.get(ApiConfig.productos, queryParameters: {
@@ -33,11 +37,20 @@ class ProductoService extends BaseService {
         // desactivar uno "desaparecía" en vez de quedar visible
         // con el badge "Inactivo", igual que en el dashboard web.
         'incluirInactivos': true,
+        'vista': vista,
         // Sin 'pagina' el backend igual pagina con LIMIT 20 por
         // defecto — subimos el límite para traer todo el inventario.
         'limite': 200,
+        'pagina': 1,
       });
-      return (res.data as List)
+      // El backend responde distinto según venga o no 'pagina' en la
+      // query (ver producto.controller.js -> exports.listar): con
+      // 'pagina' devuelve { productos, total, ... }; sin ella, el
+      // arreglo plano. Como aquí SIEMPRE mandamos 'pagina', hay que
+      // leer res.data['productos'].
+      final data = res.data;
+      final lista = data is Map ? (data['productos'] as List? ?? []) : (data as List);
+      return lista
           .map((e) => Producto.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {

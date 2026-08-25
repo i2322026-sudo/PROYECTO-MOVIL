@@ -6,7 +6,46 @@
 // ─────────────────────────────────────────────────────────────
 class ApiConfig {
   static const String base =
-      'https://alivetagroveterinaria-web.onrender.com/api';
+      'https://agropecuariorebeca.onrender.com/api';
+
+  // Mismo dominio que 'base' pero SIN el sufijo '/api' — se usa para
+  // armar la URL de las imágenes servidas como archivos estáticos
+  // (Express: app.use(express.static(PUBLIC_DIR))), que NO viven bajo
+  // /api sino directo en /img/productos/... (igual que dashboard.js).
+  static const String host = 'https://agropecuariorebeca.onrender.com';
+
+  // Verificado contra dashboard.js (líneas 264-265 y 619) y
+  // producto.js (RUTA_IMG = '/img/productos/'):
+  //  - Si `imagen` ya es una URL completa (empieza con "http"), tal
+  //    cual como llega — pasa con imágenes externas o subidas a MinIO.
+  //  - Si es solo el nombre del archivo (ej. "croquetas.webp"), se arma
+  //    contra /img/productos/ del MISMO backend (carpeta pública, no /api).
+  //  - Si no hay imagen, null — quien lo use debe mostrar un ícono de
+  //    reemplazo (igual que la web cae a /img/logo.jpeg).
+  // Verificado contra minio.service.js: todas las imágenes reales de
+  // producto se suben a un bucket público de Cloudflare R2
+  // (pub-xxxxx.r2.dev). Ese bucket NO manda cabeceras CORS, así que
+  // Flutter WEB (que decodifica la imagen por fetch, a diferencia de
+  // un <img> normal de HTML) la rechaza en silencio — por eso en
+  // Chrome no cargaban aunque la URL fuera 100% válida y la propia
+  // web (con <img> normal) sí las mostrara. En Android/iOS nativos
+  // esto no pasa (ahí no aplica CORS), pero como esta app también se
+  // prueba en Chrome, se resuelve igual para los dos casos pasando
+  // TODA imagen de R2 por el proxy propio del backend (que sí tiene
+  // CORS abierto, ver imagen.routes.js -> /proxy/imagen).
+  static const String _r2Base =
+      'https://pub-43de94155d9a4dc7af7ced67344c5419.r2.dev';
+
+  static String? urlImagen(String? imagen) {
+    if (imagen == null || imagen.trim().isEmpty) return null;
+    if (imagen.startsWith(_r2Base)) {
+      return '$base/imagenes/proxy/imagen?url=${Uri.encodeQueryComponent(imagen)}';
+    }
+    if (imagen.startsWith('http://') || imagen.startsWith('https://')) {
+      return imagen;
+    }
+    return '$host/img/productos/$imagen';
+  }
 
   // AUTH — src/routes/auth.routes.js
   static const String login = '/auth/login';
@@ -40,6 +79,10 @@ class ApiConfig {
   static const String pedidosAdmin = '/pedidos';
   static String actualizarEstadoPedido(int id) => '/pedidos/$id/estado';
   static String detallePedidoAdmin(int id) => '/pedidos/$id';
+  static String buscarPedidoPorCodigo(String codigo) =>
+      '/pedidos/buscar-codigo/$codigo';
+  static String evidenciaCancelacion(int id) =>
+      '/pedidos/$id/evidencia-cancelacion';
 
   // CLIENTES
   static const String clientes = '/clientes';
@@ -47,8 +90,13 @@ class ApiConfig {
   // COLABORADORES — src/routes/colaborador.routes.js (ya existe de verdad)
   static const String colaboradores = '/colaboradores';
   static const String cargos = '/colaboradores/cargos';
-  static String resetPasswordColaborador(int id) =>
-      '/colaboradores/$id/reset-password';
+  // Reemplaza al viejo endpoint de reset directo — ahora es un flujo de
+  // 2 pasos con OTP (igual que "Mi perfil"): pide contraseña actual +
+  // nueva, manda el código al correo, y recién con el código confirma.
+  static String solicitarResetPasswordColaborador(int id) =>
+      '/colaboradores/$id/solicitar-reset-password';
+  static String confirmarResetPasswordColaborador(int id) =>
+      '/colaboradores/$id/confirmar-reset-password';
 
   // UBIGEO
   static const String departamentos = '/ubigeo/departamentos';
@@ -62,8 +110,7 @@ class ApiConfig {
   static const String ventasPorMes = '/dashboard/ventas-mes';
   static const String productosMasVendidos = '/dashboard/productos-vendidos';
   static const String stockProductos = '/dashboard/stock';
-  static String topClientes({int limite = 10}) =>
-      '/dashboard/top-clientes?limite=$limite';
+  static const String topClientesBase = '/dashboard/top-clientes';
 
   // NOTIFICACIONES — registradas directo en src/app.js
   static const String notificaciones = '/notificaciones';

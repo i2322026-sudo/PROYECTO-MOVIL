@@ -41,6 +41,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
   String? _error;
   _FiltroProducto _filtro = _FiltroProducto.todos;
 
+  // 'activos' (todo menos lo archivado) o 'archivados' — misma
+  // pestaña que tiene el panel web sobre la tabla de Inventario.
+  String _vista = 'activos';
+
   /// Productos cuya fecha de creación cae dentro del rango elegido.
   List<Producto> get _productosFiltrados {
     if (_filtro == _FiltroProducto.todos) return _productos;
@@ -72,12 +76,19 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   String get _mensajeVacioFiltro {
+    if (_vista == 'archivados') return 'No hay productos archivados';
     switch (_filtro) {
       case _FiltroProducto.todos:
         return 'No hay productos registrados';
       default:
         return 'No hay productos creados en este rango de fechas';
     }
+  }
+
+  void _cambiarVista(String vista) {
+    if (vista == _vista) return;
+    setState(() => _vista = vista);
+    _cargarProductos();
   }
 
   String get _etiquetaFiltro {
@@ -174,7 +185,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
       _error = null;
     });
     try {
-      final productos = await _service.getProductos(nombre: nombre);
+      final productos =
+          await _service.getProductos(nombre: nombre, vista: _vista);
       setState(() {
         _productos = productos;
         _cargando = false;
@@ -356,6 +368,33 @@ class _ProductosScreenState extends State<ProductosScreen> {
       ),
       body: Column(
         children: [
+          // ── Pestañas Activos / Archivados — igual que la tabla web ──
+          Container(
+            width: double.infinity,
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _botonPestanaVista(
+                    'Activos',
+                    Icons.inventory_2_outlined,
+                    activo: _vista == 'activos',
+                    onTap: () => _cambiarVista('activos'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _botonPestanaVista(
+                    'Archivados',
+                    Icons.archive_outlined,
+                    activo: _vista == 'archivados',
+                    onTap: () => _cambiarVista('archivados'),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -383,25 +422,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
                 setState(() {});
                 _onBuscar(v);
               },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _chipFiltro('Todos', _FiltroProducto.todos),
-                  const SizedBox(width: 4),
-                  _chipFiltro('Hoy', _FiltroProducto.dia),
-                  const SizedBox(width: 4),
-                  _chipFiltro('Semana', _FiltroProducto.semana),
-                  const SizedBox(width: 4),
-                  _chipFiltro('Quincena', _FiltroProducto.quincena),
-                  const SizedBox(width: 4),
-                  _chipFiltro('Mes', _FiltroProducto.mes),
-                ],
-              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -435,25 +455,20 @@ class _ProductosScreenState extends State<ProductosScreen> {
     );
   }
 
-  Widget _chipFiltro(String texto, _FiltroProducto valor) {
-    final seleccionado = _filtro == valor;
-    return ChoiceChip(
+  // ── Botón de pestaña Activos/Archivados ──
+  Widget _botonPestanaVista(String texto, IconData icono,
+      {required bool activo, required VoidCallback onTap}) {
+    return ElevatedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icono, size: 16),
       label: Text(texto),
-      selected: seleccionado,
-      onSelected: (_) => setState(() => _filtro = valor),
-      selectedColor: AppColors.verde,
-      // Más compacto que el default: "Activos" + "Inactivos" +
-      // "Stock bajo" ocupan más texto que los rangos de Pedidos
-      // (Hoy/Semana/Mes), así que sin achicar el padding no
-      // entraban los 4 chips completos en la pantalla.
-      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      labelStyle: TextStyle(
-        fontSize: 13,
-        color: seleccionado ? Colors.white : Colors.black87,
-        fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: activo ? AppColors.verde : Colors.grey.shade200,
+        foregroundColor: activo ? Colors.white : Colors.grey.shade700,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 10),
       ),
     );
   }
+
 }

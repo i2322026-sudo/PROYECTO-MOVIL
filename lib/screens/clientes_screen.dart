@@ -3,13 +3,17 @@ import 'package:movil/models/cliente_model.dart';
 import 'package:movil/services/cliente_service.dart';
 import 'package:movil/widgets/estado_lista.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/widgets/exportar_menu_button.dart';
 
 // ─────────────────────────────────────────────────────────────
-//  ClientesScreen — mismas columnas que "Clientes Registrados"
-//  del panel web: nombre, correo, teléfono, documento, fecha.
-//  Filtro por rango de fecha de registro (Día/Semana/Quincena/
-//  Mes/Año), igual patrón que Gestión de Pedidos — se aplica en
-//  la app sobre la lista ya cargada, sin tocar el backend.
+//  ClientesScreen — misma estructura que "Clientes Registrados"
+//  del panel web (dashboard.js -> cargarClientes/toggleCliente):
+//  nombre, correo, teléfono, documento, fecha, badge de Estado
+//  (ACTIVO/INACTIVO) y botón Activar/Desactivar.
+//
+//  Antes tenía un filtro por rango de fecha (Día/Semana/Quincena/
+//  Mes/Año) que NO existe en la web — se quitó para que ambas
+//  pantallas queden con la misma estructura.
 // ─────────────────────────────────────────────────────────────
 class ClientesScreen extends StatefulWidget {
   const ClientesScreen({super.key});
@@ -18,14 +22,11 @@ class ClientesScreen extends StatefulWidget {
   State<ClientesScreen> createState() => _ClientesScreenState();
 }
 
-enum _RangoCliente { todos, dia, semana, quincena, mes, anio }
-
 class _ClientesScreenState extends State<ClientesScreen> {
   final _service = ClienteService();
   List<Cliente> _clientes = [];
   bool _cargando = true;
   String? _error;
-  _RangoCliente _rango = _RangoCliente.todos;
 
   @override
   void initState() {
@@ -52,48 +53,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
     }
   }
 
-  /// Clientes cuya fecha de registro cae dentro del rango elegido.
-  List<Cliente> get _clientesFiltrados {
-    if (_rango == _RangoCliente.todos) return _clientes;
-    final ahora = DateTime.now();
-    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
-    late DateTime desde;
-    switch (_rango) {
-      case _RangoCliente.dia:
-        desde = hoy;
-        break;
-      case _RangoCliente.semana:
-        desde = hoy.subtract(const Duration(days: 7));
-        break;
-      case _RangoCliente.quincena:
-        desde = hoy.subtract(const Duration(days: 15));
-        break;
-      case _RangoCliente.mes:
-        desde = hoy.subtract(const Duration(days: 30));
-        break;
-      case _RangoCliente.anio:
-        desde = hoy.subtract(const Duration(days: 365));
-        break;
-      case _RangoCliente.todos:
-        desde = DateTime(2000);
-    }
-    return _clientes.where((c) {
-      final f = c.fechaRegistro == null
-          ? null
-          : DateTime.tryParse(c.fechaRegistro!);
-      return f != null && !f.isBefore(desde);
-    }).toList();
-  }
-
-  String get _mensajeVacioRango {
-    switch (_rango) {
-      case _RangoCliente.todos:
-        return 'No hay clientes registrados';
-      default:
-        return 'No hay clientes registrados en este rango de fechas';
-    }
-  }
-
   String _formatearFecha(String? fecha) {
     if (fecha == null) return '-';
     final dt = DateTime.tryParse(fecha);
@@ -101,31 +60,41 @@ class _ClientesScreenState extends State<ClientesScreen> {
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 
-  Future<void> _eliminar(Cliente c) async {
+  /// Activar/Desactivar — mismo texto de confirmación que
+  /// toggleCliente() en dashboard.js.
+  Future<void> _toggleEstado(Cliente c) async {
+    final activando = c.estado == 'INACTIVO';
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar cliente'),
+        title: Text(activando ? 'Activar cliente' : 'Desactivar cliente'),
         content: Text(
-            '¿Eliminar a ${c.nombres} definitivamente? Esta acción no se puede deshacer.'),
+          activando
+              ? '¿Reactivar a "${c.nombres}"? Podrá iniciar sesión y comprar de nuevo.'
+              : '¿Desactivar a "${c.nombres}"? No podrá iniciar sesión ni hacer nuevos pedidos, pero su historial de compras se conserva.',
+        ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
               child: const Text('Cancelar')),
           TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child:
-                  const Text('Eliminar', style: TextStyle(color: Colors.red))),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(activando ? 'Sí, activar' : 'Sí, desactivar',
+                style: TextStyle(
+                    color: activando ? Colors.green : Colors.orange)),
+          ),
         ],
       ),
     );
     if (confirmar != true) return;
 
     try {
-      await _service.eliminarCliente(c.idPersona);
+      await _service.cambiarEstado(
+          c.idPersona, activando ? 'ACTIVO' : 'INACTIVO');
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Cliente eliminado')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Cliente ${activando ? 'activado' : 'desactivado'} correctamente')));
       _cargar();
     } catch (e) {
       if (!mounted) return;
@@ -137,124 +106,134 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final clientesFiltrados = _clientesFiltrados;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Clientes Registrados'),
         backgroundColor: AppColors.verde,
         foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _chipRango('Todos', _RangoCliente.todos),
-                  const SizedBox(width: 6),
-                  _chipRango('Día', _RangoCliente.dia),
-                  const SizedBox(width: 6),
-                  _chipRango('Semana', _RangoCliente.semana),
-                  const SizedBox(width: 6),
-                  _chipRango('Quincena', _RangoCliente.quincena),
-                  const SizedBox(width: 6),
-                  _chipRango('Mes', _RangoCliente.mes),
-                  const SizedBox(width: 6),
-                  _chipRango('Año', _RangoCliente.anio),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: EstadoLista(
-              cargando: _cargando,
-              error: _error,
-              vacio: clientesFiltrados.isEmpty,
-              mensajeVacio: _mensajeVacioRango,
-              onReintentar: _cargar,
-              builder: () => RefreshIndicator(
-                onRefresh: _cargar,
-                child: ListView.builder(
-                  itemCount: clientesFiltrados.length,
-                  itemBuilder: (ctx, i) {
-                    final c = clientesFiltrados[i];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              AppColors.verde.withOpacity(0.12),
-                          child: Text(
-                            c.nombres.isNotEmpty
-                                ? c.nombres[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                                color: AppColors.verde,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        title: Text(c.nombres,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (c.correo != null) Text(c.correo!),
-                            Row(
-                              children: [
-                                Text(c.telefono ?? '-'),
-                                const SizedBox(width: 12),
-                                Text('Doc: ${c.numeroDocumento ?? "-"}'),
-                              ],
-                            ),
-                          ],
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              _formatearFecha(c.fechaRegistro),
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey.shade600),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline,
-                                  size: 20, color: Colors.red),
-                              tooltip: 'Eliminar',
-                              onPressed: () => _eliminar(c),
-                            ),
-                          ],
-                        ),
-                        isThreeLine: true,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
+        actions: const [
+          ExportarMenuButton(entidad: 'clientes', nombreArchivo: 'clientes'),
         ],
       ),
-    );
-  }
-
-  Widget _chipRango(String texto, _RangoCliente valor) {
-    final seleccionado = _rango == valor;
-    return ChoiceChip(
-      label: Text(texto),
-      selected: seleccionado,
-      onSelected: (_) => setState(() => _rango = valor),
-      selectedColor: AppColors.verde,
-      labelStyle: TextStyle(
-        color: seleccionado ? Colors.white : Colors.black87,
-        fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
+      body: EstadoLista(
+        cargando: _cargando,
+        error: _error,
+        vacio: _clientes.isEmpty,
+        mensajeVacio: 'No hay clientes registrados',
+        onReintentar: _cargar,
+        builder: () => RefreshIndicator(
+          onRefresh: _cargar,
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: _clientes.length,
+            itemBuilder: (ctx, i) {
+              final c = _clientes[i];
+              final inactivo = c.estado == 'INACTIVO';
+              return Card(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor:
+                                AppColors.verde.withOpacity(0.12),
+                            child: Text(
+                              c.nombres.isNotEmpty
+                                  ? c.nombres[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                  color: AppColors.verde,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(c.nombres,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                if (c.correo != null) Text(c.correo!),
+                                Row(
+                                  children: [
+                                    Text(c.telefono ?? '-'),
+                                    const SizedBox(width: 12),
+                                    Text('Doc: ${c.numeroDocumento ?? "-"}'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            _formatearFecha(c.fechaRegistro),
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          // Badge de Estado — mismo criterio de color
+                          // que la web (verde=ACTIVO, gris=INACTIVO).
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: inactivo
+                                  ? Colors.grey.shade300
+                                  : AppColors.verde,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              c.estado,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    inactivo ? Colors.black87 : Colors.white,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          OutlinedButton.icon(
+                            onPressed: () => _toggleEstado(c),
+                            icon: Icon(
+                              inactivo
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              size: 16,
+                            ),
+                            label: Text(inactivo ? 'Activar' : 'Desactivar'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor:
+                                  inactivo ? AppColors.verde : Colors.orange,
+                              side: BorderSide(
+                                color: inactivo
+                                    ? AppColors.verde
+                                    : Colors.orange,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

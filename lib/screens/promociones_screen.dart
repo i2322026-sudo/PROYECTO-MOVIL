@@ -81,9 +81,15 @@ class _PromocionesScreenState extends State<PromocionesScreen> {
         _topClientes = lista;
         _cargandoTop = false;
       });
-    } catch (_) {
-      // Si falla, simplemente no se muestra la sección — el envío
-      // manual (correo / todos) sigue funcionando igual.
+    } catch (e) {
+      // Antes esto se tragaba el error en silencio (catch (_)) — ahora
+      // se muestra, porque un error silencioso es indistinguible de
+      // "trajo pocos resultados a propósito".
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cargar top clientes: $e')),
+        );
+      }
       setState(() => _cargandoTop = false);
     }
   }

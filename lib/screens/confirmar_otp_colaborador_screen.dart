@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movil/services/colaborador_service.dart';
 import 'package:movil/widgets/boton_principal.dart';
 import 'package:movil/app_colors.dart';
+import 'package:movil/utils/validators.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  ConfirmarOtpColaboradorScreen — paso 2 de "Nuevo Colaborador".
@@ -34,7 +35,12 @@ class _ConfirmarOtpColaboradorScreenState
 
   Future<void> _confirmar() async {
     if (_otpCtrl.text.trim().length != 5) {
-      setState(() => _error = 'Ingresa el código de 6 dígitos');
+      setState(() => _error = 'Ingresa el código de 5 dígitos');
+      return;
+    }
+    final errorOtp = Validators.otp(_otpCtrl.text);
+    if (errorOtp != null) {
+      setState(() => _error = errorOtp);
       return;
     }
     setState(() {
@@ -79,7 +85,7 @@ class _ConfirmarOtpColaboradorScreenState
                 size: 48, color: AppColors.verde),
             const SizedBox(height: 16),
             Text(
-              'Mandamos un código de 6 dígitos a ${widget.correo}. '
+              'Mandamos un código de 5 dígitos a ${widget.correo}. '
               'Pídeselo al nuevo colaborador y escribilo acá para confirmar '
               'que el correo es real y crear su cuenta.',
               style: TextStyle(color: Colors.grey.shade700),
